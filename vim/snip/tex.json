@@ -1,0 +1,67 @@
+{
+    "section": {
+        "prefix": ["section"],
+        "body": [
+            "%%%%%%%%%%%%%%%%%%%%%%%%%%%%",
+            "%% $1",
+            "%%%%%%%%%%%%%%%%%%%%%%%%%%%%",
+            "\\section{$1}",
+            "$0"
+        ],
+        "description": "create section"
+    },
+
+    "table": {
+        "prefix": ["table"],
+        "body": [
+            "\\begin{table}[tb]",
+            "\t\\begin{center}",
+            "\t\t\\caption{$1}\\label{tab:$2}",
+            "\t\t\\begin{tabular}{$3}",
+            "\t\t\t\\hline\\hline\\\\\\",
+            "\t\t\t$0",
+            "\t\t\t\\end{tabular}",
+            "\t\\end{center}",
+            "\\end{table}"
+        ],
+        "description": "create table"
+    },
+
+    "insertfigure": {
+        "prefix": ["insert"],
+        "body": [
+            "\\insertfigure[${1:size}]{${2:file_name}}{${3:label}}{${4:jp_caption}}{${5:en_caption}}"
+        ],
+        "description": "create inserfigure"
+    },
+
+    "enumerate": {
+        "prefix": ["enumerate"],
+        "body": [
+            "\\begin{enumerate}",
+            "\t\\item $1",
+            "\\end{enumerate}"
+        ],
+        "description": "insert enumerate environment"
+    },
+
+    "itemize": {
+        "prefix": ["itemize"],
+        "body": [
+            "\\begin{itemize}",
+            "\t\\item $1",
+            "\\end{itemize}"
+        ],
+        "description": "insert itemize environment"
+    },
+
+    "description": {
+        "prefix": ["description"],
+        "body": [
+            "\\begin{description}",
+            "\t\\item[$1] $2",
+            "\\end{description}"
+        ],
+        "description": "insert description environment"
+    }
+}

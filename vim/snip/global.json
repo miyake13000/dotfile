@@ -1,0 +1,7 @@
+{
+    "dateS": {
+        "prefix": ["dateS"],
+        "body": ["${CURRENT_YEAR}/${CURRENT_MONTH}/${CURRENT_DATE}"],
+        "description": "date splited slash"
+    }
+}

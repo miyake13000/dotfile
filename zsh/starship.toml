@@ -1,0 +1,134 @@
+format = """
+$hostname\
+[](bg:#151515 fg:#f0f0f0)\
+$username\
+[](bg:#202020 fg:#151515)\
+$directory\
+[](fg:#202020 bg:#303030)\
+$git_branch\
+$git_status\
+[](fg:#303030 bg:#404040)\
+$c\
+$elixir\
+$elm\
+$golang\
+$haskell\
+$java\
+$julia\
+$nodejs\
+$nim\
+$rust\
+[](fg:#404040 bg:#606060)\
+$docker_context\
+[](fg:#606060 bg:#808080)\
+$time\
+[](fg:#808080 bg:#a0a0a0)\
+$status\
+[](fg:#a0a0a0)\
+\n\
+${custom.doll}\
+[ ](fg:#404040)\
+"""
+
+# Disable the blank line at the start of the prompt
+add_newline = false
+
+[hostname]
+ssh_only = true
+style = "bg:#f0f0f0 fg:#000000"
+format = "[ $hostname ]($style)"
+disabled = false
+
+[username]
+show_always = true
+style_user = "bg:#151515"
+style_root = "bg:#151515"
+format = '[ $user ]($style)'
+
+[directory]
+style = "bg:#202020"
+format = "[ $path ]($style)"
+truncation_length = 3
+truncation_symbol = "…/"
+
+[c]
+symbol = " "
+style = "bg:#404040"
+format = '[[ $symbol ($version) ](bg:#404040)]($style)'
+
+[docker_context]
+symbol = " "
+style = "bg:#606060"
+format = '[[ $symbol $context ](bg:#606060)]($style) $path'
+
+[elixir]
+symbol = " "
+style = "bg:#404040"
+format = '[[ $symbol ($version) ](bg:#404040)]($style)'
+
+[elm]
+symbol = " "
+style = "bg:#404040"
+format = '[[ $symbol ($version) ](bg:#404040)]($style)'
+
+[git_branch]
+symbol = ""
+style = "bg:#303030"
+format = '[[ $symbol $branch ](bg:#303030)]($style)'
+
+[git_status]
+style = "fg:#d20250 bg:#303030"
+format = '[($all_status$ahead_behind )]($style)'
+
+[golang]
+symbol = " "
+style = "bg:#404040"
+format = '[[ $symbol ($version) ](bg:#404040)]($style)'
+
+[haskell]
+symbol = " "
+style = "bg:#404040"
+format = '[[ $symbol ($version) ](bg:#404040)]($style)'
+
+[java]
+symbol = " "
+style = "bg:#404040"
+format = '[[ $symbol ($version) ](bg:#404040)]($style)'
+
+[julia]
+symbol = " "
+style = "bg:#404040"
+format = '[[ $symbol ($version) ](bg:#404040)]($style)'
+
+[nodejs]
+symbol = ""
+style = "bg:#404040"
+format = '[[ $symbol ($version) ](bg:#404040)]($style)'
+
+[nim]
+symbol = " "
+style = "bg:#404040"
+format = '[[ $symbol ($version) ](bg:#404040)]($style)'
+
+[rust]
+symbol = ""
+style = "bg:#404040"
+format = '[[ $symbol ($version) ](bg:#404040)]($style)'
+
+[time]
+disabled = false
+time_format = "%R" # Hour:Minute Format
+style = "bg:#808080"
+format = '[[ $time ](bg:#808080)]($style)'
+
+[status]
+disabled = false
+style = "fg:#cc3030 bg:#a0a0a0"
+format = '[ $status ]($style)'
+
+[custom.doll]
+command = "echo $"
+when = "true"
+style = "bg:#404040"
+format = '[ $output ]($style)'
+
