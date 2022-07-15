@@ -715,12 +715,7 @@ require("nvim-lsp-installer").setup({})
 local servers = require('nvim-lsp-installer.servers').get_installed_server_names()
 
 for _, lsp in pairs(servers) do
-    if lsp ~= 'rust_analyzer' then
-        require('lspconfig')[lsp].setup {
-            on_attach = on_attach,
-            capabilities = capabilities,
-        }
-    else
+    if lsp == 'rust_analyzer' then
         require('rust-tools').setup({
             server = {
                 capabilities = capabilities,
@@ -734,6 +729,11 @@ for _, lsp in pairs(servers) do
                 },
             },
         })
+    else
+        require('lspconfig')[lsp].setup {
+            on_attach = on_attach,
+            capabilities = capabilities,
+        }
     end
 end
 
