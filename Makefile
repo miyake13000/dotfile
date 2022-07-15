@@ -14,11 +14,11 @@ all:
 	@echo "  update-all"
 
 check-command:
-	@command -V git
-	@command -V wget
-	@command -V curl
-	@command -V tar
-	@command -V gunzip
+	@which git
+	@which wget
+	@which curl
+	@which tar
+	@which gunzip
 
 setup-all: setup-zsh setup-nvim setup-tmux setup-git setup-lang
 
