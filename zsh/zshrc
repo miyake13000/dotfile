@@ -3,7 +3,9 @@ export PATH="$HOME/.cargo/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
 
 # anyenv setup
-eval "$(anyenv init -)"
+if [ $SHLVL = 1 ]; then
+    eval "$(anyenv init -)"
+fi
 # starship setup
 eval "$(starship init zsh)"
 
