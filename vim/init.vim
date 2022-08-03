@@ -299,7 +299,8 @@ let g:vimtex_compiler_generic = {
 let g:vinarise_enable_auto_detect = 1
 " 相対行表示を表示しないファイルタイプ
 let g:numbers_exclude = ['toggleterm', 'qf', 'nerdtree']
-
+" Silicon のフォントに HackGenNerd を使う
+let g:silicon = {'font': 'HackGenNerd'}
 
 
 "----------------------------------------------------------
