@@ -59,7 +59,8 @@ Plug 'simrat39/rust-tools.nvim'
 " build-in LSP のインタフェースを提供する
 Plug 'neovim/nvim-lspconfig'
 " LSP をインストール，セットアップする
-Plug 'williamboman/nvim-lsp-installer'
+Plug 'williamboman/mason.nvim'
+Plug 'williamboman/mason-lspconfig.nvim'
 " LSP の status を表示
 Plug 'j-hui/fidget.nvim'
 " markdown のプレビューを表示する
@@ -711,32 +712,32 @@ end
 ------------------------------------------------------------
 local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
 
-require("nvim-lsp-installer").setup({})
+require("mason").setup({})
 
-local servers = require('nvim-lsp-installer.servers').get_installed_server_names()
-
-for _, lsp in pairs(servers) do
-    if lsp == 'rust_analyzer' then
-        require('rust-tools').setup({
-            server = {
-                capabilities = capabilities,
-                on_attach = on_attach,
-                settings = {
-                    ["rust-analyzer"] = {
-                        checkOnSave = {
-                            command = "clippy"
-                        },
-                    }
+require('mason-lspconfig').setup_handlers({
+    function(server)
+        if server == 'rust_analyzer' then
+            require('rust-tools').setup({
+                server = {
+                    capabilities = capabilities,
+                    on_attach = on_attach,
+                    settings = {
+                        ["rust-analyzer"] = {
+                            checkOnSave = {
+                                command = "clippy"
+                            },
+                        }
+                    },
                 },
-            },
-        })
-    else
-        require('lspconfig')[lsp].setup {
-            on_attach = on_attach,
-            capabilities = capabilities,
-        }
+            })
+        else
+            require('lspconfig')[server].setup {
+                on_attach = on_attach,
+                capabilities = capabilities,
+            }
+        end
     end
-end
+})
 
 -- false : do not show error/warning/etc.. by virtual text
 vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
