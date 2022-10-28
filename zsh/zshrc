@@ -47,6 +47,7 @@ zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
 
 # alias configuration
 alias mkcd=mkcd
+alias v='nvim'
 alias vimrc="nvim ~/.config/nvim/init.vim"
 alias ls='ls --color=auto'
 alias ll='ls -l'
@@ -61,18 +62,6 @@ alias ps='ps auxf'
 function mkcd(){
     mkdir $1;
     cd $1;
-}
-if [ "$(uname -a | grep microsoft)" != "" ]; then
-    alias nvim='Nvim'
-    alias v='Nvim'
-else
-    alias v='nvim'
-fi
-function Nvim(){
-    printf "\e]12;#666666\x7"
-    command nvim  $@
-    printf "\e]12;#CCCCCC\x7"
-    printf "\e[0 q"
 }
 
 # alias for git
@@ -96,19 +85,12 @@ function ssh() {
   # tmux起動時
   if [[ -n $(printenv TMUX) ]] ; then
       current_term=$TERM
+      # TERM を変更
       export TERM=xterm-256color
-
-      # # 接続先ホスト名に応じて背景色を切り替え
-      # local pane_id=$(tmux display -p '#{pane_id}')
-      # if [[ `echo $1 | grep -x 'ssh-server'` ]]; then
-      #     tmux select-pane -P 'bg=colour52,fg=colour15'
-      # fi
-
       # 通常通りssh続行
       command ssh $@
+      # TERM を元に戻す
       export TERM=$current_term
-
-      # tmux select-pane -t $pane_id -P 'default'
   else
       command ssh $@
   fi

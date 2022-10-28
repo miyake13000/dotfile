@@ -60,7 +60,9 @@ if [ "$1" = "rg" ] || [ "$1" = "all" ]; then
 fi
 
 if [ "$1" = "shellcheck" ] || [ "$1" = "all" ]; then
-    shellcheck_filename=$(curl -Ls https://github.com/koalaman/shellcheck/releases/latest | grep "linux.x86_64" | grep "span" | sed 's/>/ /g' | sed 's/</ /g' | awk '{print $4}')
+    redirect_url=$(curl -w "%{redirect_url}" -s -o /dev/null https://github.com/koalaman/shellcheck/releases/latest/)
+    version=$(echo $redirect_url | sed 's/\// /g' | awk '{print $NF}')
+    shellcheck_filename=$(curl -Ls https://github.com/koalaman/shellcheck/releases/expanded_assets/$version | grep "linux.x86_64" | grep "span" | sed -E 's/^ *<[^<]*>//' | sed -E 's/<.*>$//')
     echo "Installing shellcheck..."
     wget -q https://github.com/koalaman/shellcheck/releases/latest/download/${shellcheck_filename} > /dev/null
     mkdir shellcheck > /dev/null

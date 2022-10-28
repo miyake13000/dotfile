@@ -30,7 +30,6 @@ call plug#begin('~/.vim/bundle')
 " vim-plug
 " textwidth にあわせて線を引く
 Plug 'miyake13000/wrap-guide'
-Plug 'junegunn/vim-plug'
 " LSP 用の colorscheme
 Plug 'folke/lsp-colors.nvim'
 " インデントの可視化
@@ -43,7 +42,6 @@ Plug 'nvim-lualine/lualine.nvim'
 Plug 'akinsho/bufferline.nvim'
 " カラースキーム
 Plug 'metalelf0/jellybeans-nvim'
-" Plug 'EdenEast/nightfox.nvim'
 " for showing powerline icon
 Plug 'ryanoasis/vim-devicons'
 " 括弧の補完
@@ -63,6 +61,9 @@ Plug 'williamboman/mason.nvim'
 Plug 'williamboman/mason-lspconfig.nvim'
 " LSP の status を表示
 Plug 'j-hui/fidget.nvim'
+" markdown の機能を追加する
+Plug 'godlygeek/tabular'
+Plug 'preservim/vim-markdown'
 " markdown のプレビューを表示する
 Plug 'iamcco/markdown-preview.nvim'
 " disable IME when leave insert mode
@@ -83,8 +84,6 @@ Plug 'unblevable/quick-scope'
 Plug 'haya14busa/vim-asterisk'
 " バッファを削除してもウィンドウが消えなくなる
 Plug 'famiu/bufdelete.nvim'
-" マークを可視化する
-Plug 'chentau/marks.nvim'
 " マッピング一覧を表示する
 Plug 'folke/which-key.nvim'
 " quickfix-windows の見た目を改善
@@ -120,8 +119,6 @@ Plug 'folke/trouble.nvim'
 Plug 'akinsho/toggleterm.nvim'
 " insert mode のときだけ絶対行表記
 Plug 'myusuf3/numbers.vim'
-" モードごとにカーソル行の色を変える
-Plug 'mvllow/modes.nvim'
 " ポップアップ通知を出す
 Plug 'rcarriga/nvim-notify'
 " sidebar
@@ -142,18 +139,15 @@ Plug 'lervag/vimtex'
 Plug 'Shougo/vinarise.vim'
 " spell checker
 Plug 'lewis6991/spellsitter.nvim'
-" inactive window に影をつける
-" Plug 'sunjon/shade.nvim'
-" settion 管理
-" Plug 'Shatur/neovim-session-manager'
-" カーソル下の単語をハイライト
-"Plug 'RRethy/vim-illuminate'
+" 自動でインデント幅を設定する
+Plug 'timakro/vim-yadi'
 
 " lua 用 plugin
 Plug 'nvim-lua/popup.nvim'
 Plug 'nvim-lua/plenary.nvim'
 Plug 'mfussenegger/nvim-dap'
 Plug 'rktjmp/lush.nvim'
+Plug 'MunifTanjim/nui.nvim'
 
 " Completion
 Plug 'hrsh7th/nvim-cmp'
@@ -186,9 +180,7 @@ require('Comment').setup()
 require('orgmode').setup_ts_grammar()
 require('orgmode').setup({})
 require('spellsitter').setup()
--- require('shade').setup()
 --require('which-key').setup({})
---require('marks').setup({})
 EOT
 
 
@@ -262,9 +254,7 @@ set backspace=indent,eol,start
 " popup を透過する
 set pumblend=10
 " spell check
-" set spell
-" 最後の文字の後一文字分カーソル移動できる
-"set virtualedit=onemore
+"set spell
 
 
 " スニペットの保存先
@@ -302,7 +292,8 @@ let g:vinarise_enable_auto_detect = 1
 let g:numbers_exclude = ['toggleterm', 'qf', 'nerdtree']
 " Silicon のフォントに HackGenNerd を使う
 let g:silicon = {'font': 'HackGenNerd'}
-
+" VimTex のハイライトを無効にする
+" let g:vimtex_syntax_enabled=0
 
 "----------------------------------------------------------
 " alias
@@ -391,12 +382,16 @@ function _G.dump(o)
 end
 EOT
 
+" 自動でインデント幅を検出する
+autocmd BufRead * DetectIndent
+
 "----------------------------------------------------------
 " colorscheme
 "----------------------------------------------------------
 set background=dark
 colorscheme jellybeans-nvim
 
+hi Cursorline guibg='#303030'
 hi Type gui=NONE
 hi Include gui=NONE
 hi ExtraWhitespace guibg='#CF572D'
@@ -406,13 +401,13 @@ hi link QuickScopeSecondary NONE
 " hlslens color settings
 hi HlSearchLensNear guifg='#333333' guibg='#888888'
 hi HlSearchLens guifg='#AAAAAA' guibg='#222222'
-hi HlSearchNear gui=underline guibg='#303030'
+hi HlSearchNear guibg='#505050'
 hi clear Search
-hi Search gui=underline guibg='#202020'
+hi Search guibg='#555555'
 
-" marks highlighting group
-hi link MarkSignNumHL LineNr
-
+" matchup highkiting parentheses
+hi MatchWord guifg='#bf6648' gui=underline
+hi MatchParen guifg='#bf6648'
 
 "----------------------------------------------------------
 " netscroll
@@ -487,22 +482,6 @@ augroup filetypeIndent
     autocmd BufNewFile,BufRead *.rb setlocal ts=2 sw=2
     autocmd BufNewFile,BufRead *.html setlocal ts=2 sw=2
 augroup END
-
-
-"----------------------------------------------------------
-" mode.nvim
-"----------------------------------------------------------
-lua<<EOT
-require('modes').setup({
-    colors = {
-        copy = "#f5c359",
-        delete = "#c75c6a",
-        insert = "#709A88",
-        visual = "#C1B1E8",
-    },
-    set_cursor = false,
-})
-EOT
 
 
 "----------------------------------------------------------
@@ -689,28 +668,18 @@ local on_attach = function(client, bufnr)
     local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
 
     local opts = { noremap=true, silent=true }
-    buf_set_keymap("n", "gD",        "<cmd>lua vim.lsp.buf.declaration()<CR>", opts)
-    buf_set_keymap("n", "gd",        "<cmd>lua vim.lsp.buf.definition()<CR>", opts)
-    buf_set_keymap("n", "K",         "<cmd>lua vim.lsp.buf.hover()<CR>", opts)
-    buf_set_keymap("n", "gi",        "<cmd>lua vim.lsp.buf.implementation()<CR>", opts)
-    buf_set_keymap("n", "<C-k>",     "<cmd>lua vim.lsp.buf.signature_help()<CR>", opts)
-    buf_set_keymap("n", "<space>wa", "<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>", opts)
-    buf_set_keymap("n", "<space>wr", "<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>", opts)
-    buf_set_keymap("n", "<space>wl", "<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>", opts)
-    buf_set_keymap("n", "<space>D",  "<cmd>lua vim.lsp.buf.type_definition()<CR>", opts)
-    buf_set_keymap("n", "<space>rn", "<cmd>lua vim.lsp.buf.rename()<CR>", opts)
-    buf_set_keymap("n", "<space>ca", "<cmd>lua vim.lsp.buf.code_action()<CR>", opts)
-    buf_set_keymap("n", "gr",        "<cmd>lua vim.lsp.buf.references()<CR>", opts)
-    buf_set_keymap("n", "[d",        "<cmd>lua vim.lsp.diagnostic.goto_prev()<CR>", opts)
-    buf_set_keymap("n", "]d",        "<cmd>lua vim.lsp.diagnostic.goto_next()<CR>", opts)
-    buf_set_keymap("n", "<space>q",  "<cmd>lua vim.lsp.diagnostic.set_loclist()<CR>", opts)
-    buf_set_keymap("n", "<space>f",  "<cmd>lua vim.lsp.buf.formatting()<CR>", opts)
+    buf_set_keymap("n", "gd",  "<cmd>lua vim.lsp.buf.definition()<CR>", opts)
+    buf_set_keymap("n", "gr",  "<cmd>lua vim.lsp.buf.references()<CR>", opts)
+    buf_set_keymap("n", "gi",  "<cmd>lua vim.lsp.buf.implementation()<CR>", opts)
+    buf_set_keymap("n", "gtd", "<cmd>lua vim.lsp.buf.type_definition()<CR>", opts)
+    buf_set_keymap("n", "grn", "<cmd>lua vim.lsp.buf.rename()<CR>", opts)
+    buf_set_keymap("n", "gca", "<cmd>lua vim.lsp.buf.code_action()<CR>", opts)
 end
 
 ------------------------------------------------------------
 -- lsp settings
 ------------------------------------------------------------
-local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
+local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
 
 require("mason").setup({})
 

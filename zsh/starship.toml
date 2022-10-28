@@ -41,40 +41,40 @@ disabled = false
 
 [username]
 show_always = true
-style_user = "bg:#151515"
-style_root = "bg:#151515"
+style_user = "bg:#151515 fg:#f0f0f0"
+style_root = "bg:#151515 fg:#f0f0f0"
 format = '[ $user ]($style)'
 
 [directory]
-style = "bg:#202020"
+style = "bg:#202020 fg:#f0f0f0"
 format = "[ $path ]($style)"
 truncation_length = 3
 truncation_symbol = "…/"
 
 [c]
 symbol = " "
-style = "bg:#404040"
-format = '[[ $symbol ($version) ](bg:#404040)]($style)'
+style = "bg:#404040 fg:#f0f0f0"
+format = '[ $symbol ($version) ]($style)'
 
 [docker_context]
 symbol = " "
-style = "bg:#606060"
-format = '[[ $symbol $context ](bg:#606060)]($style) $path'
+style = "bg:#606060 fg:#f0f0f0"
+format = '[ $symbol $context ]($style) $path'
 
 [elixir]
 symbol = " "
-style = "bg:#404040"
-format = '[[ $symbol ($version) ](bg:#404040)]($style)'
+style = "bg:#404040 fg:#f0f0f0"
+format = '[ $symbol ($version) ]($style)'
 
 [elm]
 symbol = " "
-style = "bg:#404040"
-format = '[[ $symbol ($version) ](bg:#404040)]($style)'
+style = "bg:#404040 fg:#f0f0f0"
+format = '[ $symbol ($version) ]($style)'
 
 [git_branch]
 symbol = ""
-style = "bg:#303030"
-format = '[[ $symbol $branch ](bg:#303030)]($style)'
+style = "bg:#303030 fg:#f0f0f0"
+format = '[ $symbol $branch ]($style)'
 
 [git_status]
 style = "fg:#d20250 bg:#303030"
@@ -82,44 +82,44 @@ format = '[($all_status$ahead_behind )]($style)'
 
 [golang]
 symbol = " "
-style = "bg:#404040"
-format = '[[ $symbol ($version) ](bg:#404040)]($style)'
+style = "bg:#404040 fg:#f0f0f0"
+format = '[ $symbol ($version) ]($style)'
 
 [haskell]
 symbol = " "
-style = "bg:#404040"
-format = '[[ $symbol ($version) ](bg:#404040)]($style)'
+style = "bg:#404040 fg:#f0f0f0"
+format = '[ $symbol ($version) ]($style)'
 
 [java]
 symbol = " "
-style = "bg:#404040"
-format = '[[ $symbol ($version) ](bg:#404040)]($style)'
+style = "bg:#404040 fg:#f0f0f0"
+format = '[ $symbol ($version) ]($style)'
 
 [julia]
 symbol = " "
-style = "bg:#404040"
-format = '[[ $symbol ($version) ](bg:#404040)]($style)'
+style = "bg:#404040 fg:#f0f0f0"
+format = '[ $symbol ($version) ]($style)'
 
 [nodejs]
 symbol = ""
-style = "bg:#404040"
-format = '[[ $symbol ($version) ](bg:#404040)]($style)'
+style = "bg:#404040 fg:#f0f0f0"
+format = '[ $symbol ($version) ]($style)'
 
 [nim]
 symbol = " "
-style = "bg:#404040"
-format = '[[ $symbol ($version) ](bg:#404040)]($style)'
+style = "bg:#404040 fg:#f0f0f0"
+format = '[ $symbol ($version) ]($style)'
 
 [rust]
 symbol = ""
-style = "bg:#404040"
-format = '[[ $symbol ($version) ](bg:#404040)]($style)'
+style = "bg:#404040 fg:#f0f0f0"
+format = '[ $symbol ($version) ]($style)'
 
 [time]
 disabled = false
 time_format = "%R" # Hour:Minute Format
-style = "bg:#808080"
-format = '[[ $time ](bg:#808080)]($style)'
+style = "bg:#808080 fg:#f0f0f0"
+format = '[ $time ]($style)'
 
 [status]
 disabled = false
@@ -129,6 +129,6 @@ format = '[ $status ]($style)'
 [custom.doll]
 command = "echo $"
 when = "true"
-style = "bg:#404040"
+style = "bg:#404040 fg:#f0f0f0"
 format = '[ $output ]($style)'
 
