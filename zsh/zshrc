@@ -54,7 +54,7 @@ alias ll='ls -l'
 alias la='ls -a'
 alias l='ls -al'
 alias color='for c in {000..255}; do echo -n "\e[38;5;${c}m $c" ; [ $(($c%16)) -eq 15 ] && echo;done;echo'
-alias c='clear -x'
+alias clear='clear -x'
 alias size='du -sh ./*'
 alias dockerrm='docker rm $(docker ps -aq)'
 alias dockerps='docker ps -a'
@@ -63,6 +63,11 @@ function mkcd(){
     mkdir $1;
     cd $1;
 }
+
+# one character aliases
+alias g='git'
+alias c='cargo'
+alias d='docker'
 
 # alias for git
 alias g='git'

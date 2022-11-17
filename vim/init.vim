@@ -40,8 +40,9 @@ Plug 'ntpeters/vim-better-whitespace'
 Plug 'nvim-lualine/lualine.nvim'
 " buffer file
 Plug 'akinsho/bufferline.nvim'
-" カラースキーム
-Plug 'metalelf0/jellybeans-nvim'
+" colorscheme
+" Plug 'metalelf0/jellybeans-nvim'
+Plug 'folke/tokyonight.nvim'
 " for showing powerline icon
 Plug 'ryanoasis/vim-devicons'
 " 括弧の補完
@@ -103,6 +104,8 @@ Plug 'hrsh7th/vim-vsnip-integ'
 Plug 'rafamadriz/friendly-snippets'
 " コードをハイライトする
 Plug 'nvim-treesitter/nvim-treesitter'
+" treesitter デバッグ用
+Plug 'nvim-treesitter/playground'
 " treesitter のインデントを修正する
 Plug 'yioneko/nvim-yati'
 " ripgrep
@@ -118,7 +121,7 @@ Plug 'folke/trouble.nvim'
 " terminal の見た目をよくする
 Plug 'akinsho/toggleterm.nvim'
 " insert mode のときだけ絶対行表記
-Plug 'myusuf3/numbers.vim'
+" Plug 'myusuf3/numbers.vim'
 " ポップアップ通知を出す
 Plug 'rcarriga/nvim-notify'
 " sidebar
@@ -205,7 +208,7 @@ set showmatch
 set clipboard&
 set clipboard^=unnamedplus
 " 構文に色を付ける
-syntax enable
+" syntax enable
 " UTF-8 で保存する
 set fileencoding=utf-8
 " 読込み時に文字コードを自動で判別する(左優先)
@@ -219,8 +222,6 @@ set timeout
 set ttimeout
 set timeoutlen=300
 set ttimeoutlen=50
-" 補完失敗時に視覚効果を表示する(機能していない)
-set visualbell
 " 補完失敗時に音を鳴らさない
 set t_vb=
 " コマンドモードの補完
@@ -247,12 +248,17 @@ set smartcase
 set hlsearch
 " 行番号を表示
 set number
+set relativenumber
 " カーソルラインをハイライト
 set cursorline
 " バックスペースキーの有効化
 set backspace=indent,eol,start
 " popup を透過する
 set pumblend=10
+" mode を表示しない
+set noshowmode
+" 折り返し表示しない
+set nowrap
 " spell check
 "set spell
 
@@ -288,12 +294,10 @@ let g:vimtex_compiler_generic = {
     \}
 " バイナリファイルを開くと hex editor を起動する
 let g:vinarise_enable_auto_detect = 1
-" 相対行表示を表示しないファイルタイプ
-let g:numbers_exclude = ['toggleterm', 'qf', 'nerdtree']
 " Silicon のフォントに HackGenNerd を使う
 let g:silicon = {'font': 'HackGenNerd'}
 " VimTex のハイライトを無効にする
-" let g:vimtex_syntax_enabled=0
+let g:vimtex_syntax_enabled=0
 
 "----------------------------------------------------------
 " alias
@@ -367,33 +371,49 @@ function _G.set_terminal_keymaps()
 end
 EOT
 
-lua << EOT
-function _G.dump(o)
-   if type(o) == 'table' then
-      local s = '{ '
-      for k,v in pairs(o) do
-         if type(k) ~= 'number' then k = '"'..k..'"' end
-         s = s .. '['..k..'] = ' .. dump(v) .. ','
-      end
-      return s .. '} '
-   else
-      return tostring(o)
-   end
-end
-EOT
-
 " 自動でインデント幅を検出する
 autocmd BufRead * DetectIndent
 
 "----------------------------------------------------------
 " colorscheme
 "----------------------------------------------------------
-set background=dark
-colorscheme jellybeans-nvim
+lua <<EOT
+require("tokyonight").setup({
+    styles = {
+        comments = { italic = false },
+        keywords = { italic = false },
+        },
+    terminal_colors = true, -- Configure the colors used when opening a `:terminal` in Neovim
+    hide_inactive_statusline = true, -- Enabling this option, will hide inactive statuslines and replace them with a thin border instead. Should work with the standard **StatusLine** and **LuaLine**.
+    on_colors = function(colors)
+        colors.bg = "#101010"
+        colors.bg_dark = "#080808"
+        colors.bg_float = colors_bg
+        colors.bg_highlight = "#202020"
+        colors.bg_visual = "#404040"
+        colors.fg = "#f0f0f0"
+        colors.fg_dark = "#c0c0c0"
+        colors.dark3 = "#404040"
+        colors.dark5 = "#a5a5a5"
+        colors.comment = "#808080"
+        colors.fg_gutter = "#505050"
+        colors.gitSigns = { change = colors.orange, add = colors.green, delete = colors.red }
+        colors.border = colors.dark5
+        colors.blue = "#7aa2f7"
+        colors.cyan = "#7dcfff"
+        colors.blue0 = "#d75f5f"
+        colors.blue1 = "#ffaf5f"
+        colors.blue2 = "#c0c000"
+        colors.blue5 = "#3cb371"
+        colors.blue6 = "#4169e1"
+        colors.blue7 = "#8a2be2"
+  end
+})
+EOT
 
-hi Cursorline guibg='#303030'
-hi Type gui=NONE
-hi Include gui=NONE
+set background=dark
+colorscheme tokyonight-night
+
 hi ExtraWhitespace guibg='#CF572D'
 hi QuickScopePrimary gui=underline
 hi link QuickScopeSecondary NONE
@@ -405,7 +425,7 @@ hi HlSearchNear guibg='#505050'
 hi clear Search
 hi Search guibg='#555555'
 
-" matchup highkiting parentheses
+" matchup highliting parentheses
 hi MatchWord guifg='#bf6648' gui=underline
 hi MatchParen guifg='#bf6648'
 
@@ -494,8 +514,9 @@ require'nvim-treesitter.configs'.setup {
 
     highlight = {
         enable = true,
-        disable = {'org', 'latex'},
-        additional_vim_regex_highlighting = {'org', 'latex'},
+        disable = {'org'},
+        -- additional_vim_regex_highlighting = {'org'},
+        additional_vim_regex_highlighting = false,
     },
     matchup = {
         enable = true, -- mandatory, false will disable the whole extension
@@ -509,12 +530,16 @@ EOT
 " lualine
 "----------------------------------------------------------
 lua<<EOT
-local jellybeans = require('lualine.themes.jellybeans')
-jellybeans.insert.a.bg = '#709A88'
-jellybeans.visual.a.bg = '#C1B1E8'
+local colors = require("tokyonight.colors").setup()
+local my_a = { fg = colors.fg, bg = colors.dark5}
+local my_b = { fg = colors.fg, bg = colors.dark3}
+local my_c = { fg = colors.dark5, bg = colors.bg}
+local my_set = { a = my_a, b = my_b, c = my_c}
+
+local my_theme = { visual = my_set, replace = my_set, inactive = my_set, normal = my_set, insert = my_set }
 
 require('lualine').setup({
-    options = { theme  = jellybeans },
+    options = { theme  = my_theme },
     sections = {
         lualine_a = {'mode'},
         lualine_b = {'filename'},
