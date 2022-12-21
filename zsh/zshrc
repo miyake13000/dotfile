@@ -1,16 +1,16 @@
-# set new path
-export PATH="$HOME/.cargo/bin:$PATH"
-export PATH="$HOME/.local/bin:$PATH"
-
-# anyenv setup
 if [ $SHLVL = 1 ]; then
+    # add local bin path
+    export PATH="$HOME/.local/bin:$PATH"
+    # Machine specific setting
+    source ~/.profile
+    # anyenv setup
     eval "$(anyenv init -)"
 fi
 # starship setup
 eval "$(starship init zsh)"
 
 # delete douplicate path
-export PATH=$(echo -n $PATH | awk -v RS=: '!($0 in a) {a[$0]; printf("%s%s", length(a) > 1 ? ":" : "", $0)}')
+# export PATH=$(echo -n $PATH | awk -v RS=: '!($0 in a) {a[$0]; printf("%s%s", length(a) > 1 ? ":" : "", $0)}')
 
 # rust clippy setting
 export CLIPPY_DISABLE_DOCS_LINKS=true
@@ -85,23 +85,6 @@ function gcm {
 if [ "$(uname -a | grep microsoft)" != "" ]; then
     alias shutdown='"/mnt/c/Windows/System32/wsl.exe" --shutdown'
 fi
-
-function ssh() {
-  # tmux起動時
-  if [[ -n $(printenv TMUX) ]] ; then
-      current_term=$TERM
-      # TERM を変更
-      export TERM=xterm-256color
-      # 通常通りssh続行
-      command ssh $@
-      # TERM を元に戻す
-      export TERM=$current_term
-  else
-      command ssh $@
-  fi
-}
-
-alias ssh=ssh
 
 function Tmux {
     tmux $@ >/tmp/tmux.log 2>/tmp/tmux_err.log

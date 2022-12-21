@@ -99,7 +99,6 @@ Plug 'kyazdani42/nvim-web-devicons'
 Plug  'goolord/alpha-nvim'
 " スニペット
 Plug 'hrsh7th/vim-vsnip'
-Plug 'hrsh7th/vim-vsnip-integ'
 " サンプルスニペット
 Plug 'rafamadriz/friendly-snippets'
 " コードをハイライトする
@@ -298,6 +297,8 @@ let g:vinarise_enable_auto_detect = 1
 let g:silicon = {'font': 'HackGenNerd'}
 " VimTex のハイライトを無効にする
 let g:vimtex_syntax_enabled=0
+" display matching line in popup
+let g:matchup_matchparen_offscreen = {'method': 'popup'}
 
 "----------------------------------------------------------
 " alias
