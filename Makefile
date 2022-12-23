@@ -1,17 +1,25 @@
 CWD = $(shell pwd)
 
-all:
-	@echo "Setup some tools"
-	@echo "  setup-zsh"
-	@echo "  setup-nvim"
-	@echo "  setup-tmux"
-	@echo "  setup-lang"
-	@echo "  setup-all"
-	@echo "  update-zsh"
-	@echo "  update-nvim"
-	@echo "  update-tmux"
-	@echo "  update-lang"
-	@echo "  update-all"
+usage:
+	@echo "dotfiles for miyake13000 (https://github.com/miyake13000)"
+	@echo ""
+	@echo "This Makefile can setup/update below tools"
+	@echo "  zsh"
+	@echo "  nvim"
+	@echo "  tmux"
+	@echo "  anyenv (some languages' environment)"
+	@echo "You can setup above tools with below command"
+	@echo "  zsh    -> make setup-zsh"
+	@echo "  nvim   -> make setup-nvim"
+	@echo "  tmux   -> make setup-tmux"
+	@echo "  anyenv -> make setup-lang"
+	@echo "  above all -> setup-all"
+	@echo "You can also update them"
+	@echo "  zsh    -> make update-zsh"
+	@echo "  nvim   -> make update-nvim"
+	@echo "  tmux   -> make update-tmux"
+	@echo "  anyenv -> make update-lang"
+	@echo "  above all -> update-all"
 
 check-command:
 	@which git
