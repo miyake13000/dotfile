@@ -30,8 +30,6 @@ call plug#begin('~/.vim/bundle')
 " vim-plug
 " textwidth にあわせて線を引く
 Plug 'miyake13000/wrap-guide'
-" LSP 用の colorscheme
-Plug 'folke/lsp-colors.nvim'
 " インデントの可視化
 Plug 'lukas-reineke/indent-blankline.nvim'
 " 末尾の全角半角空白文字を赤くハイライト
@@ -41,7 +39,6 @@ Plug 'nvim-lualine/lualine.nvim'
 " buffer file
 Plug 'akinsho/bufferline.nvim'
 " colorscheme
-" Plug 'metalelf0/jellybeans-nvim'
 Plug 'folke/tokyonight.nvim'
 " for showing powerline icon
 Plug 'ryanoasis/vim-devicons'
@@ -53,15 +50,6 @@ Plug 'preservim/nerdtree'
 Plug 'vim-jp/autofmt'
 " Rust フォーマッタ
 Plug 'rust-lang/rust.vim'
-" rust_analyzer のラッパーLSP
-Plug 'simrat39/rust-tools.nvim'
-" build-in LSP のインタフェースを提供する
-Plug 'neovim/nvim-lspconfig'
-" LSP をインストール，セットアップする
-Plug 'williamboman/mason.nvim'
-Plug 'williamboman/mason-lspconfig.nvim'
-" LSP の status を表示
-Plug 'j-hui/fidget.nvim'
 " markdown の機能を追加する
 Plug 'godlygeek/tabular'
 Plug 'preservim/vim-markdown'
@@ -115,20 +103,14 @@ Plug 'nvim-telescope/telescope.nvim'
 Plug 'nvim-orgmode/orgmode'
 " 囲まれている単語を調整
 Plug 'machakann/vim-sandwich'
-" LSP の見た目をよくする
-Plug 'folke/trouble.nvim'
 " terminal の見た目をよくする
 Plug 'akinsho/toggleterm.nvim'
-" insert mode のときだけ絶対行表記
-" Plug 'myusuf3/numbers.vim'
 " ポップアップ通知を出す
 Plug 'rcarriga/nvim-notify'
 " sidebar
 Plug 'sidebar-nvim/sidebar.nvim'
 " スクロールをスムーズにする
 Plug 'karb94/neoscroll.nvim'
-" CursorHold のバグを修正する
-Plug 'antoinemadec/FixCursorHold.nvim'
 " vim 上で翻訳する
 Plug 'voldikss/vim-translator'
 " comment out プラグイン
@@ -143,6 +125,29 @@ Plug 'Shougo/vinarise.vim'
 Plug 'lewis6991/spellsitter.nvim'
 " 自動でインデント幅を設定する
 Plug 'timakro/vim-yadi'
+" URL を開く
+Plug 'axieax/urlview.nvim'
+
+" LSP 関連
+" build-in LSP のインタフェースを提供する
+Plug 'neovim/nvim-lspconfig'
+" LSP をインストール，セットアップする
+Plug 'williamboman/mason.nvim'
+Plug 'williamboman/mason-lspconfig.nvim'
+" rust_analyzer のラッパーLSP
+Plug 'simrat39/rust-tools.nvim'
+" LSP 用の colorscheme
+Plug 'folke/lsp-colors.nvim'
+" CursorHold のバグを修正する
+Plug 'antoinemadec/FixCursorHold.nvim'
+" LSP の status を表示
+Plug 'j-hui/fidget.nvim'
+" LSP 対応外のツールを LS として使用できるようにする
+Plug 'jose-elias-alvarez/null-ls.nvim'
+" null-ls を mason に対応させる
+Plug 'jayp0521/mason-null-ls.nvim'
+" LSP のUI を改善する
+Plug 'tami5/lspsaga.nvim'
 
 " lua 用 plugin
 Plug 'nvim-lua/popup.nvim'
@@ -169,7 +174,6 @@ require('alpha').setup(require'alpha.themes.dashboard'.config)
 require('colorizer').setup()
 require('todo-comments').setup({})
 require('fidget').setup({})
-require('trouble').setup({})
 require('toggleterm').setup({})
 require('bufferline').setup({})
 require('nvim-treesitter.configs').setup({yati = { enable = true }})
@@ -177,11 +181,15 @@ require('notify').setup()
 require('gitsigns').setup()
 require('sidebar-nvim').setup({})
 require('neoscroll').setup()
-require('hlslens').setup({nearest_only = true})
 require('Comment').setup()
 require('orgmode').setup_ts_grammar()
 require('orgmode').setup({})
 require('spellsitter').setup()
+require('lspsaga').setup()
+require('null-ls').setup()
+require('mason-null-ls').setup()
+require('hlslens').setup()
+--require('urlview').setup()
 --require('which-key').setup({})
 EOT
 
@@ -206,8 +214,6 @@ set showmatch
 " yank でクリップボードに入る
 set clipboard&
 set clipboard^=unnamedplus
-" 構文に色を付ける
-" syntax enable
 " UTF-8 で保存する
 set fileencoding=utf-8
 " 読込み時に文字コードを自動で判別する(左優先)
@@ -229,8 +235,6 @@ set wildmenu
 set history=5000
 " タブ入力を複数の空白入力に置き換える
 set expandtab
-" 連続した空白に対してタブキーやバックスペースキーでカーソルが動く幅
-set softtabstop=4
 " 改行時に前の行のインデントを継続する
 set autoindent
 " 改行時に前の行の構文をチェックし次の行のインデントを増減する
@@ -256,8 +260,14 @@ set backspace=indent,eol,start
 set pumblend=10
 " mode を表示しない
 set noshowmode
-" 折り返し表示しない
-set nowrap
+" マウスでカーソル移動とスクロール
+set mouse=a
+" 画面上でタブ文字が占める幅
+set tabstop=4
+" smartindentで増減する幅
+set shiftwidth=4
+" 連続した空白に対してタブキーやバックスペースキーでカーソルが動く幅
+set softtabstop=4
 " spell check
 "set spell
 
@@ -269,7 +279,7 @@ let g:rustfmt_autosave = 1
 " CursorHold が発動するまでのマージン
 let g:cursorhold_updatetime = 300
 " * で検索時にカーソルを移動しない
-" let g:asterisk#keeppos = 1
+let g:asterisk#keeppos = 1
 " 翻訳時の対象言語
 let g:translator_target_lang = 'ja'
 " 翻訳結果を表示するウィンドウのサイズ
@@ -297,8 +307,8 @@ let g:vinarise_enable_auto_detect = 1
 let g:silicon = {'font': 'HackGenNerd'}
 " VimTex のハイライトを無効にする
 let g:vimtex_syntax_enabled=0
-" display matching line in popup
-let g:matchup_matchparen_offscreen = {'method': 'popup'}
+" matchup を画面に表示しない
+let g:matchup_matchparen_offscreen = {}
 
 "----------------------------------------------------------
 " alias
@@ -313,8 +323,6 @@ nnoremap <ESC><ESC> :nohlsearch<CR>
 " 行が折り返し表示されていた場合、行単位ではなく表示行単位でカーソルを移動する
 nnoremap j gj
 nnoremap k gk
-nnoremap <down> gj
-nnoremap <up> gk
 " 検索結果が画面中央に来るようにする
 nmap n nzz
 nmap N Nzz
@@ -324,9 +332,6 @@ nnoremap <leader>n :NERDTreeToggle<CR>
 " translate 用のバインド
 nnoremap <leader>g :TranslateW<CR>
 vnoremap <leader>g :TranslateW<CR>
-" Trouble 用のバインド
-nnoremap <leader>xx <cmd>TroubleToggle<cr>
-nnoremap <leader>xq <cmd>TroubleToggle quickfix<cr>
 " telescope 用のバインド
 nnoremap <leader>ff <cmd>Telescope find_files<cr>
 nnoremap <leader>fg <cmd>Telescope live_grep<cr>
@@ -342,14 +347,6 @@ nnoremap '*'  <Plug>(asterisk-z*)  <Cmd>lua require('hlslens').start()<CR>
 nnoremap '#'  <Plug>(asterisk-z#)  <Cmd>lua require('hlslens').start()<CR>
 nnoremap 'g*' <Plug>(asterisk-zg*) <Cmd>lua require('hlslens').start()<CR>
 nnoremap 'g#' <Plug>(asterisk-zg#) <Cmd>lua require('hlslens').start()<CR>
-" w3m 用のキーマップ
-nnoremap <leader>w <cmd>call ExecW3M()<cr>
-function ExecW3M()
-    let inputtext = input("Search words > ")
-    let args = '"exec ggr ' . inputtext . '"'
-    let cmd = "TermExec direction=float cmd=" . args
-    exe cmd
-endfunction
 " カーソルが常に画面中央に来るようにする
 nnoremap <silent>zx <cmd>call CenteringCursorToggle()<cr>
 function CenteringCursorToggle()
@@ -360,8 +357,8 @@ function CenteringCursorToggle()
     endif
 endfunction
 
-" ホバーで diagnostic を float で開く
-autocmd CursorHold * :lua vim.diagnostic.open_float()
+" diagnostic を float で開く
+autocmd CursorHold * :lua require('lspsaga.diagnostic').show_line_diagnostics()
 
 " ToggleTerm 中のキーマップ
 autocmd! TermOpen term://* lua set_terminal_keymaps()
@@ -384,8 +381,8 @@ require("tokyonight").setup({
         comments = { italic = false },
         keywords = { italic = false },
         },
-    terminal_colors = true, -- Configure the colors used when opening a `:terminal` in Neovim
-    hide_inactive_statusline = true, -- Enabling this option, will hide inactive statuslines and replace them with a thin border instead. Should work with the standard **StatusLine** and **LuaLine**.
+    terminal_colors = true,
+    hide_inactive_statusline = true,
     on_colors = function(colors)
         colors.bg = "#101010"
         colors.bg_dark = "#080808"
@@ -430,8 +427,9 @@ hi Search guibg='#555555'
 hi MatchWord guifg='#bf6648' gui=underline
 hi MatchParen guifg='#bf6648'
 
+
 "----------------------------------------------------------
-" netscroll
+" neoscroll
 "----------------------------------------------------------
 lua << EOT
 local t = {}
@@ -440,69 +438,12 @@ t['<C-u>'] = {'scroll', {'-vim.wo.scroll', 'true', '75'}}
 t['<C-d>'] = {'scroll', { 'vim.wo.scroll', 'true', '75'}}
 t['<C-b>'] = {'scroll', {'-vim.api.nvim_win_get_height(0)', 'true', '150'}}
 t['<C-f>'] = {'scroll', { 'vim.api.nvim_win_get_height(0)', 'true', '150'}}
+t['zt']    = {'zt', {'75'}}
+t['zz']    = {'zz', {'75'}}
+t['zb']    = {'zb', {'75'}}
 
 require('neoscroll.config').set_mappings(t)
 EOT
-
-
-"----------------------------------------------------------
-" マウスでカーソル移動とスクロール
-"----------------------------------------------------------
-if has('mouse')
-    set mouse=a
-    if has('mouse_sgr')
-        set ttymouse=sgr
-    elseif v:version > 703 || v:version is 703 && has('patch632')
-        "set ttymouse=sg
-    else
-        set ttymouse=xterm2
-    endif
-endif
-
-
-"----------------------------------------------------------
-" クリップボードからのペースト
-"----------------------------------------------------------
-" 挿入モードでクリップボードからペーストする時に自動でインデントさせないようにする
-if &term =~ "tmux-256color"
-    let &t_SI .= "\e[?2004h"
-    let &t_EI .= "\e[?2004l"
-    let &pastetoggle = "\e[201~"
-
-    function XTermPasteBegin(ret)
-        set paste
-        return a:ret
-    endfunction
-
-    inoremap <special> <expr> <Esc>[200~ XTermPasteBegin("")
-endif
-
-
-"----------------------------------------------------------
-" txt ファイルを自動改行するようにする
-"----------------------------------------------------------
-augroup filetypeIndent
-    autocmd!
-    autocmd BufNewFile,BufRead *.txt setlocal textwidth=70
-augroup END
-
-set formatoptions+=mM
-
-
-"----------------------------------------------------------
-" indent setting
-"----------------------------------------------------------
-" 画面上でタブ文字が占める幅
-set tabstop=4
-" smartindentで増減する幅
-set shiftwidth=4
-
-augroup filetypeIndent
-    autocmd!
-    autocmd BufNewFile,BufRead *.tex setlocal ts=2 sw=2
-    autocmd BufNewFile,BufRead *.rb setlocal ts=2 sw=2
-    autocmd BufNewFile,BufRead *.html setlocal ts=2 sw=2
-augroup END
 
 
 "----------------------------------------------------------
@@ -516,12 +457,11 @@ require'nvim-treesitter.configs'.setup {
     highlight = {
         enable = true,
         disable = {'org'},
-        -- additional_vim_regex_highlighting = {'org'},
         additional_vim_regex_highlighting = false,
     },
     matchup = {
-        enable = true, -- mandatory, false will disable the whole extension
-        disable = {},  -- optional, list of language that will be disabled
+        enable = true,
+        disable = {},
     },
 }
 EOT
@@ -557,26 +497,29 @@ EOT
 " scrollbar
 "----------------------------------------------------------
 lua <<EOF
-require("scrollbar").setup({
-    handle = {
-        color = '#555555',
-    },
-    marks = {
-        Search = { color = '#CCCCCC' },
-        Error = { color = '#D75F5F' },
-        Warn = { color = '#FFAF5F' },
-        Info = { color = '#4169E1' },
-        Hint = { color = '#3CB371' },
-        Misc = { color = '#9A8EB8' },
-    }
-})
-
-require("scrollbar.handlers.search").setup()
+-- require("scrollbar").setup({
+--     show_in_active_only = true,
+--     hide_if_all_visible = false,
+--     handle = {
+--         color = '#555555',
+--     },
+--     marks = {
+--         Search = { color = '#CCCCCC' },
+--         Error = { color = '#D75F5F' },
+--         Warn = { color = '#FFAF5F' },
+--         Info = { color = '#4169E1' },
+--         Hint = { color = '#3CB371' },
+--         Misc = { color = '#9A8EB8' },
+--     }
+-- })
+--
+-- require("scrollbar.handlers.search").setup({nearest_only = true})
+-- require("scrollbar.handlers.gitsigns").setup()
 EOF
 
 
 "----------------------------------------------------------
-" LSP settings
+" autopairs
 "---------------------------------------------------------
 lua <<EOT
 local npairs = require("nvim-autopairs")
@@ -586,23 +529,8 @@ npairs.setup({
     check_ts = true,
     ignored_next_char = "[%w%.]",
     enable_check_bracket_line = false,
-    ts_config = {
-        lua = {'string'},-- it will not add a pair on that treesitter node
-        javascript = {'template_string'},
-        java = false,-- don't check treesitter on java
-    }
 })
 
-local ts_conds = require('nvim-autopairs.ts-conds')
-
-
--- press % => %% only while inside a comment or string
-npairs.add_rules({
-  Rule("%", "%", "lua")
-    :with_pair(ts_conds.is_ts_node({'string','comment'})),
-  Rule("$", "$", "lua")
-    :with_pair(ts_conds.is_not_ts_node({'function'}))
-})
 EOT
 
 "----------------------------------------------------------
@@ -632,8 +560,8 @@ cmp.setup({
         end,
     },
     window = {
-        -- completion = cmp.config.window.bordered(),
-        -- documentation = cmp.config.window.bordered(),
+        completion = cmp.config.window.bordered(),
+        documentation = cmp.config.window.bordered(),
     },
     mapping = cmp.mapping.preset.insert({
         ["<Tab>"] = cmp.mapping(function(fallback)
@@ -685,8 +613,10 @@ cmp.setup.cmdline(':', {
     })
 })
 
-cmp.event:on( 'confirm_done', cmp_autopairs.on_confirm_done({  map_char = { tex = '' } }))
-
+cmp.event:on(
+  'confirm_done',
+  cmp_autopairs.on_confirm_done()
+)
 ------------------------------------------------------------
 -- keybindings
 ------------------------------------------------------------
@@ -695,12 +625,24 @@ local on_attach = function(client, bufnr)
 
     local opts = { noremap=true, silent=true }
     buf_set_keymap("n", "gd",  "<cmd>lua vim.lsp.buf.definition()<CR>", opts)
-    buf_set_keymap("n", "gr",  "<cmd>lua vim.lsp.buf.references()<CR>", opts)
-    buf_set_keymap("n", "gi",  "<cmd>lua vim.lsp.buf.implementation()<CR>", opts)
-    buf_set_keymap("n", "gtd", "<cmd>lua vim.lsp.buf.type_definition()<CR>", opts)
-    buf_set_keymap("n", "grn", "<cmd>lua vim.lsp.buf.rename()<CR>", opts)
-    buf_set_keymap("n", "gca", "<cmd>lua vim.lsp.buf.code_action()<CR>", opts)
+    buf_set_keymap("n", "gq",  "<cmd>Telescope diagnostics<CR>", opts)
+    buf_set_keymap("n", "gr",  "<cmd>Telescope lsp_references<CR>", opts)
+    buf_set_keymap("n", "gi",  "<cmd>Telescope lsp_implementations()<CR>", opts)
+    buf_set_keymap("n", "gtd", "<cmd>Telescope lsp_type_definitions()<CR>", opts)
+    buf_set_keymap("n", "grn", "<cmd>lua require('lspsaga.rename').rename<CR>", opts)
+    buf_set_keymap("n", "gca", "<cmd>lua require('lspsaga.codeaction').code_action<CR>", opts)
 end
+
+local function show_documentation()
+  local ft = vim.opt.filetype._value
+  if ft == 'vim' or ft == 'help' then
+    vim.cmd([[execute 'h ' . expand('<cword>') ]])
+  else
+    require('lspsaga.hover').render_hover_doc()
+  end
+end
+
+vim.keymap.set({ 'n' }, 'gs', show_documentation)
 
 ------------------------------------------------------------
 -- lsp settings
