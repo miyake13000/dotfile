@@ -503,19 +503,19 @@ EOT
 "----------------------------------------------------------
 lua<<EOT
 local colors = require("tokyonight.colors").setup()
-local my_a = { fg = colors.fg, bg = colors.dark5}
-local my_b = { fg = colors.fg, bg = colors.dark3}
-local my_c = { fg = colors.dark5, bg = colors.bg}
+local my_a = { fg = colors.fg_dark, bg = colors.bg}
+local my_b = { fg = colors.fg_dark, bg = colors.bg}
+local my_c = { fg = colors.fg_dark, bg = colors.bg}
 local my_set = { a = my_a, b = my_b, c = my_c}
 
 local my_theme = { visual = my_set, replace = my_set, inactive = my_set, normal = my_set, insert = my_set }
 local my_sections = {
-    lualine_a = {'mode'},
-    lualine_b = {'filename'},
-    lualine_c = {'branch', 'diff', 'diagnostics'},
-    lualine_x = {'encoding', 'fileformat', 'filetype'},
-    lualine_y = {'%l/%L (%c)'},
-    lualine_z = {'progress'}
+    lualine_a = {'filename','branch', 'diff', 'diagnostics'},
+    lualine_b = {},
+    lualine_c = {},
+    lualine_x = {'encoding', 'fileformat', 'filetype','%l/%L (%p%%)'},
+    lualine_y = {},
+    lualine_z = {}
 }
 
 require('lualine').setup({
