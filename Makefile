@@ -95,6 +95,7 @@ update-nvim: check-command
 	$(CWD)/scripts/install-tools.sh rg
 	$(CWD)/scripts/install-tools.sh shellcheck
 	$(CWD)/scripts/install-tools.sh tree-sitter
+	$(CWD)/scripts/install-tools.sh lazygit
 
 update-lang:;	anyenv update
 
