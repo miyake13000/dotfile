@@ -27,7 +27,10 @@ endif
 
 call plug#begin('~/.vim/bundle')
 
-" vim-plug
+" 通知をリッチにする
+Plug 'folke/noice.nvim'
+" Diagnostic を行下に表示する
+Plug 'ErichDonGubler/lsp_lines.nvim'
 " textwidth にあわせて線を引く
 Plug 'miyake13000/wrap-guide'
 " インデントの可視化
@@ -36,8 +39,6 @@ Plug 'lukas-reineke/indent-blankline.nvim'
 Plug 'ntpeters/vim-better-whitespace'
 " Status line for lua
 Plug 'nvim-lualine/lualine.nvim'
-" buffer file
-Plug 'akinsho/bufferline.nvim'
 " colorscheme
 Plug 'folke/tokyonight.nvim'
 " for showing powerline icon
@@ -65,8 +66,6 @@ Plug 'norcalli/nvim-colorizer.lua'
 Plug 'folke/todo-comments.nvim'
 " スクロールバーを表示
 Plug 'petertriho/nvim-scrollbar'
-" スクロールバーに検索結果を表示
-Plug 'kevinhwang91/nvim-hlslens'
 " fで一発移動できる文字をハイライト
 Plug 'unblevable/quick-scope'
 " *でカーソルを移動しなくする
@@ -127,6 +126,13 @@ Plug 'lewis6991/spellsitter.nvim'
 Plug 'timakro/vim-yadi'
 " URL を開く
 Plug 'axieax/urlview.nvim'
+" セッションを保存する
+Plug 'Shatur/neovim-session-manager'
+" vim.ui.select を改善
+Plug 'stevearc/dressing.nvim'
+
+" funny plugins
+Plug 'eandrju/cellular-automaton.nvim'
 
 " LSP 関連
 " build-in LSP のインタフェースを提供する
@@ -140,8 +146,6 @@ Plug 'simrat39/rust-tools.nvim'
 Plug 'folke/lsp-colors.nvim'
 " CursorHold のバグを修正する
 Plug 'antoinemadec/FixCursorHold.nvim'
-" LSP の status を表示
-Plug 'j-hui/fidget.nvim'
 " LSP 対応外のツールを LS として使用できるようにする
 Plug 'jose-elias-alvarez/null-ls.nvim'
 " null-ls を mason に対応させる
@@ -163,7 +167,6 @@ Plug 'hrsh7th/cmp-vsnip'
 Plug 'hrsh7th/cmp-path'
 Plug 'hrsh7th/cmp-buffer'
 Plug 'hrsh7th/cmp-cmdline'
-Plug 'hrsh7th/cmp-omni'
 
 call plug#end()
 
@@ -173,9 +176,7 @@ lua <<EOT
 require('alpha').setup(require'alpha.themes.dashboard'.config)
 require('colorizer').setup()
 require('todo-comments').setup({})
-require('fidget').setup({})
 require('toggleterm').setup({})
-require('bufferline').setup({})
 require('nvim-treesitter.configs').setup({yati = { enable = true }})
 require('notify').setup()
 require('gitsigns').setup()
@@ -188,11 +189,13 @@ require('spellsitter').setup()
 require('lspsaga').setup()
 require('null-ls').setup()
 require('mason-null-ls').setup()
-require('hlslens').setup()
+require('session_manager').setup({ autoload_mode = require('session_manager.config').AutoloadMode.Disabled })
+require('dressing').setup()
+require('lsp_lines').setup()
+require('lsp_lines').toggle()
 --require('urlview').setup()
 --require('which-key').setup({})
 EOT
-
 
 "----------------------------------------------------------
 " some settings
@@ -230,7 +233,7 @@ set ttimeoutlen=50
 " 補完失敗時に音を鳴らさない
 set t_vb=
 " コマンドモードの補完
-set wildmenu
+" set wildmenu
 " 保存するコマンド履歴の数
 set history=5000
 " タブ入力を複数の空白入力に置き換える
@@ -268,6 +271,9 @@ set tabstop=4
 set shiftwidth=4
 " 連続した空白に対してタブキーやバックスペースキーでカーソルが動く幅
 set softtabstop=4
+" 新規ウィンドウを右/下に開く
+set splitbelow
+set splitright
 " spell check
 "set spell
 
@@ -309,6 +315,8 @@ let g:silicon = {'font': 'HackGenNerd'}
 let g:vimtex_syntax_enabled=0
 " matchup を画面に表示しない
 let g:matchup_matchparen_offscreen = {}
+" normal モードに戻ると IME を切る
+let g:spzenhan#default_status = 0
 
 "----------------------------------------------------------
 " alias
@@ -327,26 +335,24 @@ nnoremap k gk
 nmap n nzz
 nmap N Nzz
 
-" NerdTree 用のバインド
-nnoremap <leader>n :NERDTreeToggle<CR>
 " translate 用のバインド
-nnoremap <leader>g :TranslateW<CR>
-vnoremap <leader>g :TranslateW<CR>
+nnoremap <leader>t <cmd>TranslateW<CR>
+vnoremap <leader>t <cmd>TranslateW<CR>
 " telescope 用のバインド
 nnoremap <leader>ff <cmd>Telescope find_files<cr>
 nnoremap <leader>fg <cmd>Telescope live_grep<cr>
 nnoremap <leader>fb <cmd>Telescope buffers<cr>
 nnoremap <leader>fh <cmd>Telescope help_tags<cr>
 " ToggleTerm 用バインド
-nnoremap <leader>tt <Cmd>ToggleTerm size=80 direction=vertical<cr>
-nnoremap <leader>tf <Cmd>ToggleTerm direction=float<cr>
+nnoremap <c-y> <Cmd>ToggleTerm size=80 direction=vertical<cr>
+nnoremap <c-t> <Cmd>ToggleTerm direction=float<cr>
 " Sidebar を開く
-nnoremap <leader>s <Cmd>SidebarNvimToggle<cr>
-" asterisk で HlSearch を実行
-nnoremap '*'  <Plug>(asterisk-z*)  <Cmd>lua require('hlslens').start()<CR>
-nnoremap '#'  <Plug>(asterisk-z#)  <Cmd>lua require('hlslens').start()<CR>
-nnoremap 'g*' <Plug>(asterisk-zg*) <Cmd>lua require('hlslens').start()<CR>
-nnoremap 'g#' <Plug>(asterisk-zg#) <Cmd>lua require('hlslens').start()<CR>
+nnoremap <leader>a <Cmd>SidebarNvimToggle<cr>
+" Session Manager
+nnoremap <leader>sl <Cmd>SessionManager load_last_session<cr>
+nnoremap <leader>ss <Cmd>SessionManager load_session<cr>
+nnoremap <leader>sc <Cmd>SessionManager load_current_session<cr>
+
 " カーソルが常に画面中央に来るようにする
 nnoremap <silent>zx <cmd>call CenteringCursorToggle()<cr>
 function CenteringCursorToggle()
@@ -357,8 +363,35 @@ function CenteringCursorToggle()
     endif
 endfunction
 
+" lsp_lines を切り替える
+let g:lsp_lines_is_enable = 0
+nnoremap <leader>l <Cmd>call LspLinesToggle()<cr>
+function LspLinesToggle()
+    if g:lsp_lines_is_enable == 0
+        let g:lsp_lines_is_enable = 1
+    else
+        let g:lsp_lines_is_enable = 0
+    endif
+    lua require('lsp_lines').toggle()
+endfunction
+
 " diagnostic を float で開く
-autocmd CursorHold * :lua require('lspsaga.diagnostic').show_line_diagnostics()
+autocmd CursorHold * call ShowDiagnostics()
+function ShowDiagnostics()
+    if g:lsp_lines_is_enable == 0
+        lua require('lspsaga.diagnostic').show_line_diagnostics()
+    endif
+endfunction
+
+" lazygit を ToggleTerm で開く
+nnoremap <leader>g <Cmd>lua _lazygit_toggle()<cr>
+lua <<EOT
+local Terminal = require("toggleterm.terminal").Terminal
+local lazygit = Terminal:new({ cmd = "lazygit", direction = "float" })
+function _lazygit_toggle()
+    lazygit:toggle()
+end
+EOT
 
 " ToggleTerm 中のキーマップ
 autocmd! TermOpen term://* lua set_terminal_keymaps()
@@ -382,7 +415,7 @@ require("tokyonight").setup({
         keywords = { italic = false },
         },
     terminal_colors = true,
-    hide_inactive_statusline = true,
+    hide_inactive_statusline = false,
     on_colors = function(colors)
         colors.bg = "#101010"
         colors.bg_dark = "#080808"
@@ -417,8 +450,6 @@ hi QuickScopePrimary gui=underline
 hi link QuickScopeSecondary NONE
 
 " hlslens color settings
-hi HlSearchLensNear guifg='#333333' guibg='#888888'
-hi HlSearchLens guifg='#AAAAAA' guibg='#222222'
 hi HlSearchNear guibg='#505050'
 hi clear Search
 hi Search guibg='#555555'
@@ -478,17 +509,19 @@ local my_c = { fg = colors.dark5, bg = colors.bg}
 local my_set = { a = my_a, b = my_b, c = my_c}
 
 local my_theme = { visual = my_set, replace = my_set, inactive = my_set, normal = my_set, insert = my_set }
+local my_sections = {
+    lualine_a = {'mode'},
+    lualine_b = {'filename'},
+    lualine_c = {'branch', 'diff', 'diagnostics'},
+    lualine_x = {'encoding', 'fileformat', 'filetype'},
+    lualine_y = {'%l/%L (%c)'},
+    lualine_z = {'progress'}
+}
 
 require('lualine').setup({
     options = { theme  = my_theme },
-    sections = {
-        lualine_a = {'mode'},
-        lualine_b = {'filename'},
-        lualine_c = {'branch', 'diff', 'diagnostics'},
-        lualine_x = {'encoding', 'fileformat', 'filetype'},
-        lualine_y = {'%l/%L (%c)'},
-        lualine_z = {'progress'}
-    }
+    sections = my_sections,
+    inactive_sections = my_sections,
 })
 EOT
 
@@ -534,6 +567,31 @@ npairs.setup({
 EOT
 
 "----------------------------------------------------------
+" autopairs
+"---------------------------------------------------------
+lua <<EOT
+require("noice").setup({
+  lsp = {
+    -- override markdown rendering so that **cmp** and other plugins use **Treesitter**
+    override = {
+      ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+      ["vim.lsp.util.stylize_markdown"] = true,
+      ["cmp.entry.get_documentation"] = true,
+    },
+  },
+  -- you can enable a preset for easier configuration
+  presets = {
+    bottom_search = true, -- use a classic bottom cmdline for search
+    command_palette = true, -- position the cmdline and popupmenu together
+    long_message_to_split = true, -- long messages will be sent to a split
+    inc_rename = false, -- enables an input dialog for inc-rename.nvim
+    lsp_doc_border = false, -- add a border to hover docs and signature help
+  },
+})
+EOT
+
+
+"----------------------------------------------------------
 " LSP settings
 "---------------------------------------------------------
 lua <<EOT
@@ -543,11 +601,6 @@ lua <<EOT
 vim.opt.completeopt = "menu,menuone,noselect"
 local cmp = require'cmp'
 local cmp_autopairs = require('nvim-autopairs.completion.cmp')
-
-local has_words_before = function()
-    local line, col = unpack(vim.api.nvim_win_get_cursor(0))
-    return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
-end
 
 local feedkey = function(key, mode)
     vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(key, true, true, true), mode, true)
@@ -569,8 +622,6 @@ cmp.setup({
                 cmp.select_next_item()
             elseif vim.fn["vsnip#available"](1) == 1 then
                 feedkey("<Plug>(vsnip-expand-or-jump)", "")
-            elseif has_words_before() then
-                cmp.complete()
             else
                 fallback()
             end
@@ -578,8 +629,6 @@ cmp.setup({
         ["<S-Tab>"] = cmp.mapping(function()
             if cmp.visible() then
                 cmp.select_prev_item()
-            elseif vim.fn["vsnip#jumpable"](-1) == 1 then
-                feedkey("<Plug>(vsnip-jump-prev)", "")
             end
         end, { "i", "s" }),
         ['<C-b>'] = cmp.mapping.scroll_docs(-4),
@@ -588,11 +637,11 @@ cmp.setup({
         ['<C-c>'] = cmp.mapping.abort(),
         ['<CR>'] = cmp.mapping.confirm({ select = false }),
     }),
+    experimental = { ghost_text = false },
     sources = cmp.config.sources({
             { name = 'nvim_lsp' },
             { name = 'vsnip' },
-            { name = 'omni' },
-            { name = 'buffer' },
+            { name = 'buffer', keyword_length = 4 },
             { name = 'path' },
     })
 })
@@ -629,8 +678,8 @@ local on_attach = function(client, bufnr)
     buf_set_keymap("n", "gr",  "<cmd>Telescope lsp_references<CR>", opts)
     buf_set_keymap("n", "gi",  "<cmd>Telescope lsp_implementations()<CR>", opts)
     buf_set_keymap("n", "gtd", "<cmd>Telescope lsp_type_definitions()<CR>", opts)
-    buf_set_keymap("n", "grn", "<cmd>lua require('lspsaga.rename').rename<CR>", opts)
-    buf_set_keymap("n", "gca", "<cmd>lua require('lspsaga.codeaction').code_action<CR>", opts)
+    buf_set_keymap("n", "grn", "<cmd>lua require('lspsaga.rename').rename()<CR>", opts)
+    buf_set_keymap("n", "gca", "<cmd>lua require('lspsaga.codeaction').code_action()<CR>", opts)
 end
 
 local function show_documentation()
@@ -647,9 +696,10 @@ vim.keymap.set({ 'n' }, 'gs', show_documentation)
 ------------------------------------------------------------
 -- lsp settings
 ------------------------------------------------------------
-local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
+local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
-require("mason").setup({})
+-- none, single, double, rounded, solid, shadow
+require("mason").setup({ui = {border = "single"}})
 
 require('mason-lspconfig').setup_handlers({
     function(server)
@@ -679,6 +729,12 @@ require('mason-lspconfig').setup_handlers({
 -- false : do not show error/warning/etc.. by virtual text
 vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
     vim.lsp.diagnostic.on_publish_diagnostics, { virtual_text = false }
+)
+vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(
+  vim.lsp.handlers.hover, { separator = true }
+)
+vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(
+  vim.lsp.handlers.signature_help, { separator = true }
 )
 
 EOT

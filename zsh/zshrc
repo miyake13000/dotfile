@@ -1,11 +1,11 @@
 if [ $SHLVL = 1 ]; then
     # add local bin path
     export PATH="$HOME/.local/bin:$PATH"
-    # Machine specific setting
-    source ~/.profile
     # anyenv setup
     eval "$(anyenv init -)"
 fi
+# Machine specific setting
+source ~/.profile
 # starship setup
 eval "$(starship init zsh)"
 
@@ -102,8 +102,6 @@ function Tmux {
     fi
 }
 
-if [ "$SSH_CLIENT" = "" ]; then
-    if [ "$TMUX" = "" ]; then
-        Tmux
-    fi
+if [ "$TMUX" = "" ]; then
+    Tmux
 fi

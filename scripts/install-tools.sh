@@ -14,6 +14,7 @@ if [ "$1" = "" ]; then
     shellcheck    syntax parser for shell script
     starship      shell prompt customizer
     tree-sitter   syntax parser
+    lazygit       CUI git integrator
 
     all           install above tools at once
 _EOT_
@@ -85,6 +86,16 @@ if [ "$1" = "tree-sitter" ] || [ "$1" = "all" ]; then
     gunzip tree-sitter-linux-x64.gz > /dev/null
     chmod +x tree-sitter-linux-x64 > /dev/null
     mv tree-sitter-linux-x64 ~/.local/bin/tree-sitter > /dev/null
+    echo "done"
+fi
+
+if [ "$1" = "lazygit" ] || [ "$1" = "all" ]; then
+    lazygit_version=$(curl -Ls https://github.com/jesseduffield/lazygit/releases/latest | grep "<title>"  | awk '{print $2}')
+    lazygit_version_stripped="${lazygit_version:1}"
+    echo "Installing lazygit (${lazygit_version})..."
+    wget -q https://github.com/jesseduffield/lazygit/releases/download/${lazygit_version}/lazygit_${lazygit_version_stripped}_Linux_x86_64.tar.gz > /dev/null
+    tar xzf lazygit_${lazygit_version_stripped}_Linux_x86_64.tar.gz > /dev/null
+    mv lazygit ~/.local/bin/lazygit > /dev/null
     echo "done"
 fi
 
