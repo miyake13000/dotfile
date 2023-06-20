@@ -22,11 +22,13 @@ usage:
 	@echo "  above all -> update-all"
 
 check-command:
-	@which git
-	@which wget
-	@which curl
-	@which tar
-	@which gunzip
+	@which git    > /dev/null || (echo "Install git with 'sudo apt install git'"    ; exit 1)
+	@which wget   > /dev/null || (echo "Install git with 'sudo apt install wget'"   ; exit 1)
+	@which curl   > /dev/null || (echo "Install git with 'sudo apt install curl'"   ; exit 1)
+	@which tar    > /dev/null || (echo "Install git with 'sudo apt install tar'"    ; exit 1)
+	@which gunzip > /dev/null || (echo "Install git with 'sudo apt install gunzip'" ; exit 1)
+	@which zsh    > /dev/null || (echo "Install git with 'sudo apt install zsh'"    ; exit 1)
+	@which tmux   > /dev/null || (echo "Install git with 'sudo apt install tmux'"   ; exit 1)
 
 setup-all: setup-zsh setup-nvim setup-tmux setup-git setup-lang
 
@@ -52,7 +54,7 @@ setup-nvim: check-command
 	ln -sf $(CWD)/vim/snip ~/.vim/snip
 	ln -sf $(CWD)/scripts/nvim-update.sh ~/.local/bin/nvim-update
 	ln -sf $(CWD)/scripts/ggr.sh ~/.local/bin/ggr
-	$(CWD)/scripts/nvim-update.sh
+	$(CWD)/scripts/nvim-update.sh --force
 	$(CWD)/scripts/install-tools.sh bat
 	$(CWD)/scripts/install-tools.sh fd
 	$(CWD)/scripts/install-tools.sh rg
@@ -89,7 +91,7 @@ update-zsh: check-command
 	$(CWD)/scripts/install-tools.sh starship
 
 update-nvim: check-command
-	$(CWD)/scripts/nvim-update.sh
+	$(CWD)/scripts/nvim-update.sh --force
 	$(CWD)/scripts/install-tools.sh bat
 	$(CWD)/scripts/install-tools.sh fd
 	$(CWD)/scripts/install-tools.sh rg

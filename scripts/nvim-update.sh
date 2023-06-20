@@ -1,50 +1,114 @@
 #!/bin/bash
 
-function main() {
-    mkdir /tmp/nvim_download
-    if ! nvim_download; then
-        echo "failed to download neovim"
-        rm -rf /tmp/nvim_dowload
-        exit 1
-    fi
+function set_options(){
+    while getopts "fn-:" OPT; do
+        case $OPT in
+            -)
+                case "${OPTARG}" in
+                    force)
+                        FORCE=true
+                        ;;
+                    nightly)
+                        NIGHTLY=true
+                        ;;
+                    *)
+                        echo "Invalid option: $OPT"
+                        exit 1
+                ;;
+                esac
+                ;;
+            f)
+                FORCE=true
+                ;;
+            n)
+                NIGHTLY=true
+                ;;
+            *)
+                echo "Invalid option: $OPT"
+                exit 1
+                ;;
+        esac
+    done
+}
 
-    if command -v nvim; then
-        if is_latest; then
-            echo "neovim is latest version"
-            rm -rf /tmp/nvim_download
-            exit
-            true
+function main() {
+    set_options "$@"
+    if [[ -v NIGHTLY ]]; then
+        tag="nightly"
+    else
+        tag="stable"
+    fi
+    source="/tmp/nvim-download/nvim-$tag"
+    dest="$HOME/.local/bin/nvim-$tag"
+
+    mkdir -p "$(dirname $source)" &>/dev/null
+    download_nvim "$tag" "$source"
+    print_nvim_version "$source"
+
+    if ! [[ -v FORCE ]]; then
+        if ! ensure_installation "$source"; then
+            echo "Installation aborted."
+            rm -rf "$(dirname $source)"
+            exit 1
         fi
     fi
 
-    if ! install; then
+    mkdir -p "$(dirname $dest)" &>/dev/null
+    if ! install_nvim "$tag" "$path" "$dest"; then
         echo "failed to install neovim"
-        rm -rf /tmp/nvim_download
+        rm -rf "$(dirname $source)"
         exit 1
     fi
 
-    rm -rf /tmp/nvim_download
+    rm -rf "$(dirname $source)"
 }
 
-function nvim_download() {
-    echo "downloading nvim..."
-    wget -q -P /tmp/nvim_download "https://github.com/neovim/neovim/releases/download/stable/nvim.appimage" > /dev/null
-    chmod +x /tmp/nvim_download/nvim.appimage > /dev/null
+function download_nvim() {
+    tag=$1
+    path="$2"
+    echo -n "Downloading nvim-$tag..."
+    curl -s -L "https://github.com/neovim/neovim/releases/download/$tag/nvim.appimage" > "$path"
+    chmod +x "$path" > /dev/null
     echo "done."
+    echo
 }
 
-function is_latest() {
-    local_version=$(nvim --version | head -n 1)
-    echo "local version = $local_version"
-    download_version=$(/tmp/nvim_download/nvim.appimage --version | head -n 1)
-    echo "download version = $download_version"
-    [ "$local_version" = "$download_version" ]
+function print_nvim_version() {
+    path="$1"
+    if which nvim > /dev/null; then
+        current_version="$(nvim --version | head -n 1)"
+        echo "Current nvim version: $current_version"
+    fi
+    download_version="$($path --version | head -n 1)"
+    echo "New nvim version: $download_version"
+    echo
 }
 
-function install() {
-    echo "installing nvim..."
-    mv /tmp/nvim_download/nvim.appimage ~/.local/bin/nvim
+function ensure_installation() {
+    path="$1"
+    echo "Current nvim will be overwritten by new nvim."
+    echo "Do you want to continue to install?"
+    echo -n "[Y/n]: "
+    read res
+    echo
+    if [ "$res" = "n" ] || [ "$res" = "N" ]; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+function install_nvim() {
+    tag=$1
+    src="$2"
+    dest="$3"
+    link="$(dirname $3)/nvim"
+    filename="$(basename $3)"
+    echo -n "Installing nvim..."
+    mv "$src" "$dest"
+    ln -fs "$filename" "$link"
     echo "done."
+    echo
 }
 
-main
+main "$@"
