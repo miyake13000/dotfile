@@ -1,11 +1,12 @@
+# If you have the machine specific settings (e.g. PATH),
+# you can use ~/.zshenv
+
 if [ $SHLVL = 1 ]; then
     # add local bin path
     export PATH="$HOME/.local/bin:$PATH"
     # anyenv setup
     eval "$(anyenv init -)"
 fi
-# Machine specific setting
-source ~/.profile
 # starship setup
 eval "$(starship init zsh)"
 
