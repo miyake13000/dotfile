@@ -55,7 +55,7 @@ Plug 'rust-lang/rust.vim'
 Plug 'godlygeek/tabular'
 Plug 'preservim/vim-markdown'
 " markdown のプレビューを表示する
-Plug 'iamcco/markdown-preview.nvim'
+Plug 'iamcco/markdown-preview.nvim', {'do': 'cd app && yarn install'}
 " disable IME when leave insert mode
 Plug 'kaz399/spzenhan.vim'
 " command を非同期に実行
@@ -308,7 +308,7 @@ let g:vimtex_compiler_generic = {
     \ 'command' : 'make all',
     \}
 " バイナリファイルを開くと hex editor を起動する
-let g:vinarise_enable_auto_detect = 1
+let g:vinarise_enable_auto_detect = 0
 " Silicon のフォントに HackGenNerd を使う
 let g:silicon = {'font': 'HackGenNerd'}
 " VimTex のハイライトを無効にする
@@ -336,8 +336,7 @@ nmap n nzz
 nmap N Nzz
 
 " translate 用のバインド
-nnoremap <leader>t <cmd>TranslateW<CR>
-vnoremap <leader>t <cmd>TranslateW<CR>
+noremap <leader>t :TranslateW<CR>
 " telescope 用のバインド
 nnoremap <leader>ff <cmd>Telescope find_files<cr>
 nnoremap <leader>fg <cmd>Telescope live_grep<cr>
