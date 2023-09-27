@@ -148,4 +148,5 @@ if [ $SHLVL = 1 ]; then
     else
         tmux
     fi
+    exit
 fi
