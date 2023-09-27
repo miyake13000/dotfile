@@ -45,6 +45,7 @@ ifeq ("$(wildcard ~/.zsh/autosuggestions)", "")
 	git clone -q https://github.com/zsh-users/zsh-autosuggestions ~/.zsh/autosuggestions
 endif
 	$(CWD)/scripts/install-tools.sh starship
+	$(CWD)/scripts/install-tools.sh fzf
 
 setup-nvim: check-command
 	mkdir -p ~/.config/nvim
@@ -89,6 +90,7 @@ update-zsh: check-command
 	cd ~/.zsh/completions && git pull -q origin master
 	cd ~/.zsh/autosuggestions && git pull -q origin master
 	$(CWD)/scripts/install-tools.sh starship
+	$(CWD)/scripts/install-tools.sh fzf
 
 update-nvim: check-command
 	$(CWD)/scripts/nvim-update.sh --force
