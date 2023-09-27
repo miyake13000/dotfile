@@ -443,6 +443,18 @@ EOT
 
 set background=dark
 colorscheme tokyonight-night
+let g:is_dark = 1
+
+command ColorSchemeToggle call ColorSchemeToggle()
+function ColorSchemeToggle()
+    if g:is_dark == 1
+        colorscheme tokyonight-day
+        let g:is_dark = 0
+    else
+        colorscheme tokyonight-night
+        let g:is_dark = 1
+    endif
+endfunction
 
 hi ExtraWhitespace guibg='#CF572D'
 hi QuickScopePrimary gui=underline
