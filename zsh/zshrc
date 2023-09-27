@@ -1,76 +1,57 @@
 # If you have the machine specific settings (e.g. PATH),
 # you can use ~/.zshenv
 
+############################################
+# zinit
+############################################
+# Install zinit if zinit does not exist
+if [[ ! -f $HOME/.local/share/zinit/zinit.git/zinit.zsh ]]; then
+    print -P "%F{33} %F{220}Installing %F{33}ZDHARMA-CONTINUUM%F{220} Initiative Plugin Manager (%F{33}zdharma-continuum/zinit%F{220})…%f"
+    command mkdir -p "$HOME/.local/share/zinit" && command chmod g-rwX "$HOME/.local/share/zinit"
+    command git clone https://github.com/zdharma-continuum/zinit "$HOME/.local/share/zinit/zinit.git" && \
+        print -P "%F{33} %F{34}Installation successful.%f%b" || \
+        print -P "%F{160} The clone has failed.%f%b"
+fi
+
+# Load zinit
+source "$HOME/.local/share/zinit/zinit.git/zinit.zsh"
+autoload -Uz _zinit
+(( ${+_comps} )) && _comps[zinit]=_zinit
+
+############################################
+# env
+############################################
 if [ $SHLVL = 1 ]; then
     # add local bin path
     export PATH="$HOME/.local/bin:$PATH"
     # anyenv setup
     eval "$(anyenv init -)"
 fi
-# starship setup
-eval "$(starship init zsh)"
 
-# delete douplicate path
-# export PATH=$(echo -n $PATH | awk -v RS=: '!($0 in a) {a[$0]; printf("%s%s", length(a) > 1 ? ":" : "", $0)}')
-
-# rust clippy setting
+# Disable clippy link
 export CLIPPY_DISABLE_DOCS_LINKS=true
 
-# option setting
-setopt histignorealldups sharehistory
-setopt auto_cd
-unsetopt beep
+############################################
+# starship
+############################################
+eval "$(starship init zsh)"
 
-# Keep 1000 lines of history within the shell and save it to ~/.zsh_history:
-HISTSIZE=1000
-SAVEHIST=100000
-HISTFILE=~/.zsh_history
-
-# 補完
-source ~/.zsh/autosuggestions/zsh-autosuggestions.zsh
-fpath=(~/.zsh/completions/src $fpath)
-autoload -Uz compinit && compinit
-zstyle ':completion:*' auto-description 'specify: %d'
-zstyle ':completion:*' completer _expand _complete _correct _approximate
-zstyle ':completion:*' format 'Completing %d'
-zstyle ':completion:*' group-name ''
-zstyle ':completion:*' menu select=2
-zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
-zstyle ':completion:*' list-colors ''
-zstyle ':completion:*' list-prompt %SAt %p: Hit TAB for more, or the character to insert%s
-zstyle ':completion:*' matcher-list '' 'm:{a-z}={A-Z}' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=* l:|=*'
-zstyle ':completion:*' menu select=long
-zstyle ':completion:*' select-prompt %SScrolling active: current selection at %p%s
-zstyle ':completion:*' use-compctl false
-zstyle ':completion:*' verbose true
-zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
-zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
-
-# alias configuration
-alias mkcd=mkcd
+############################################
+# alias
+############################################
+# vim
 alias v='nvim'
 alias vimrc="nvim ~/.config/nvim/init.vim"
+# ls
 alias ls='ls --color=auto'
 alias ll='ls -l'
 alias la='ls -a'
 alias l='ls -al'
-alias color='for c in {000..255}; do echo -n "\e[38;5;${c}m $c" ; [ $(($c%16)) -eq 15 ] && echo;done;echo'
-alias clear='clear -x'
-alias size='du -sh ./*'
+# docker
+alias d='docker'
 alias dockerrm='docker rm $(docker ps -aq)'
 alias dockerps='docker ps -a'
-alias ps='ps auxf'
-function mkcd(){
-    mkdir $1;
-    cd $1;
-}
-
-# one character aliases
-alias g='git'
-alias c='cargo'
-alias d='docker'
-
-# alias for git
+# git
 alias g='git'
 alias gs='git status'
 alias ga='git add'
@@ -82,27 +63,89 @@ alias gd='git diff'
 function gcm {
     git commit -m "$*"
 }
-
+# Rust
+alias c='cargo'
+# other
+alias color='for c in {000..255}; do echo -n "\e[38;5;${c}m $c" ; [ $(($c%16)) -eq 15 ] && echo;done;echo'
+alias clear='clear -x'
+alias size='du -sh'
+alias ps='ps auxf'
+alias mkcd=mkcd
+function mkcd(){
+    mkdir $1;
+    cd $1;
+}
+# machine speific
 if [ "$(uname -a | grep microsoft)" != "" ]; then
     alias shutdown='"/mnt/c/Windows/System32/wsl.exe" --shutdown'
 fi
 
-function Tmux {
-    tmux $@ >/tmp/tmux.log 2>/tmp/tmux_err.log
-    res=$(cat /tmp/tmux.log)
-    res_err=$(cat /tmp/tmux_err.log)
-    if [ "$res" = "[exited]" ]; then
-        exit
-    else
-        if [ "$res" != "" ]; then
-            echo "$res"
-        fi
-        if [ "$res_err" != "" ]; then
-            echo "$res_err"
-        fi
+############################################
+# Plugin
+############################################
+zinit light zsh-users/zsh-syntax-highlighting
+zinit light zsh-users/zsh-autosuggestions
+zinit light zsh-users/zsh-completions
+zinit light marlonrichert/zsh-autocomplete
+
+############################################
+# Completion
+############################################
+autoload -U compinit && compinit
+zstyle ':completion:*' list-colors di=34 ln=36 rs=0 mh=00 pi=33 so=35 do=35 bd=01 cd=01 or=01 mi=00 su=41 sg=43 ca=41 tw=42 ow=42 st=44 ex=32
+bindkey '\t' menu-select "$terminfo[kcbt]" reverse-menu-select
+bindkey -M menuselect '\r' .accept-line
+
+############################################
+# CDR
+############################################
+if [[ -z "$ZSH_CDR_DIR" ]]; then
+    ZSH_CDR_DIR=${XDG_CACHE_HOME:-$HOME/.cache}/zsh-cdr
+fi
+mkdir -p $ZSH_CDR_DIR
+autoload -Uz chpwd_recent_dirs cdr
+autoload -U add-zsh-hook
+add-zsh-hook chpwd chpwd_recent_dirs
+zstyle ':chpwd:*' recent-dirs-file $ZSH_CDR_DIR/recent-dirs
+zstyle ':chpwd:*' recent-dirs-max 1000
+zstyle ':chpwd:*' recent-dirs-default yes
+alias cdd='fzf-cdr'
+function fzf-cdr() {
+    target_dir=`cdr -l | sed 's/^[^ ][^ ]*  *//' | fzf`
+    target_dir=`echo ${target_dir/\~/$HOME}`
+    if [ -n "$target_dir" ]; then
+        cd $target_dir
     fi
 }
 
-if [ "$TMUX" = "" ]; then
-    Tmux
+############################################
+# History
+############################################
+HISTSIZE=100000
+SAVEHIST=100000
+HISTFILE=~/.zsh_history
+
+setopt hist_expire_dups_first
+setopt hist_ignore_all_dups
+setopt hist_ignore_dups
+setopt hist_save_no_dups
+setopt share_history
+
+function select-history() {
+  BUFFER=$(history -n -r 1 | fzf --no-sort +m --query "$LBUFFER" --prompt="History > ")
+  CURSOR=$#BUFFER
+  zle accept-line
+}
+zle -N select-history
+bindkey '^r' select-history
+
+############################################
+# Startup program
+############################################
+if [ $SHLVL = 1 ]; then
+    if [ "$(tmux list-sessions)" != "" ]; then
+        tmux a
+    else
+        tmux
+    fi
 fi
