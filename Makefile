@@ -33,17 +33,10 @@ check-command:
 setup-all: setup-zsh setup-nvim setup-tmux setup-git setup-lang
 
 setup-zsh: check-command
-	mkdir -p ~/.zsh
 	mkdir -p ~/.config
 	mkdir -p ~/.local/bin
 	ln -sf $(CWD)/zsh/zshrc ~/.zshrc
 	ln -sf $(CWD)/zsh/starship.toml ~/.config/starship.toml
-ifeq ("$(wildcard ~/.zsh/completions)", "")
-	git clone -q https://github.com/zsh-users/zsh-completions ~/.zsh/completions
-endif
-ifeq ("$(wildcard ~/.zsh/autosuggestions)", "")
-	git clone -q https://github.com/zsh-users/zsh-autosuggestions ~/.zsh/autosuggestions
-endif
 	$(CWD)/scripts/install-tools.sh starship
 	$(CWD)/scripts/install-tools.sh fzf
 
@@ -87,8 +80,6 @@ setup-git: check-command
 update-all: update-zsh update-nvim update-lang
 
 update-zsh: check-command
-	cd ~/.zsh/completions && git pull -q origin master
-	cd ~/.zsh/autosuggestions && git pull -q origin master
 	$(CWD)/scripts/install-tools.sh starship
 	$(CWD)/scripts/install-tools.sh fzf
 
