@@ -108,4 +108,13 @@ if [ "$1" = "fzf" ] || [ "$1" = "all" ]; then
     echo "done"
 fi
 
+if [ "$1" = "tmux" ] || [ "$1" = "all" ]; then
+    tmux_version=$(curl -Ls https://github.com/nelsonenzo/tmux-appimage/releases/latest | grep "<title>" | awk '{print $3}')
+    echo "Installing tmux (${tmux_version})..."
+    wget -q https://github.com/nelsonenzo/tmux-appimage/releases/latest/download/tmux.appimage > /dev/null
+    chmod +x tmux.appimage
+    mv tmux.appimage ~/.local/bin/tmux > /dev/null
+    echo "done"
+fi
+
 rm -r /tmp/install-tools

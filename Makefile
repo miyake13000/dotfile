@@ -28,7 +28,6 @@ check-command:
 	@which tar    > /dev/null || (echo "Install git with 'sudo apt install tar'"    ; exit 1)
 	@which gunzip > /dev/null || (echo "Install git with 'sudo apt install gunzip'" ; exit 1)
 	@which zsh    > /dev/null || (echo "Install git with 'sudo apt install zsh'"    ; exit 1)
-	@which tmux   > /dev/null || (echo "Install git with 'sudo apt install tmux'"   ; exit 1)
 
 setup-all: setup-zsh setup-nvim setup-tmux setup-git setup-lang
 
@@ -56,6 +55,7 @@ setup-nvim: check-command
 	$(CWD)/scripts/install-tools.sh tree-sitter
 
 setup-tmux: check-command
+	$(CWD)/scripts/install-tools.sh tmux
 	ln -sf $(CWD)/tmux/tmux.conf ~/.tmux.conf
 
 
@@ -68,9 +68,6 @@ ifeq ("$(wildcard ~/.anyenv/plugins)", "")
 endif
 	ln -sf ~/.anyenv/bin/anyenv ~/.local/bin/anyenv
 	~/.anyenv/bin/anyenv install --force-init
-	~/.anyenv/bin/anyenv install rbenv
-	~/.anyenv/bin/anyenv install pyenv
-	~/.anyenv/bin/anyenv install nodenv
 
 setup-git: check-command
 	mkdir -p ~/.local/bin
