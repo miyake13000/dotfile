@@ -75,10 +75,6 @@ function mkcd(){
     mkdir $1;
     cd $1;
 }
-# machine speific
-if [ "$(uname -a | grep microsoft)" != "" ]; then
-    alias shutdown='"/mnt/c/Windows/System32/wsl.exe" --shutdown'
-fi
 
 ############################################
 # Plugin
