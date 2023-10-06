@@ -471,6 +471,23 @@ hi MatchParen guifg='#bf6648'
 
 
 "----------------------------------------------------------
+" indent blankline
+"----------------------------------------------------------
+hi IblScope guifg='#AAAAAA'
+
+lua << EOT
+require("ibl").setup({
+    scope = {
+       enabled = true,
+       injected_languages = false,
+       show_start = true,
+       show_end = false,
+    }
+})
+EOT
+
+
+"----------------------------------------------------------
 " neoscroll
 "----------------------------------------------------------
 lua << EOT
