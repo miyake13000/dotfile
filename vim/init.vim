@@ -144,8 +144,6 @@ Plug 'williamboman/mason-lspconfig.nvim'
 Plug 'simrat39/rust-tools.nvim'
 " LSP 用の colorscheme
 Plug 'folke/lsp-colors.nvim'
-" CursorHold のバグを修正する
-Plug 'antoinemadec/FixCursorHold.nvim'
 " LSP 対応外のツールを LS として使用できるようにする
 Plug 'jose-elias-alvarez/null-ls.nvim'
 " null-ls を mason に対応させる
@@ -179,7 +177,6 @@ require('todo-comments').setup({})
 require('toggleterm').setup({})
 require('nvim-treesitter.configs').setup({yati = { enable = true }})
 require('notify').setup()
-require('gitsigns').setup()
 require('sidebar-nvim').setup({})
 require('neoscroll').setup()
 require('Comment').setup()
@@ -193,7 +190,7 @@ require('session_manager').setup({ autoload_mode = require('session_manager.conf
 require('dressing').setup()
 require('lsp_lines').setup()
 require('lsp_lines').toggle()
---require('urlview').setup()
+require('urlview').setup()
 --require('which-key').setup({})
 EOT
 
@@ -203,7 +200,7 @@ EOT
 " ファイルタイプ別のVimプラグイン/インデントを有効にする
 filetype plugin indent on
 " sign column を常に表示する
-set signcolumn=yes:2
+set signcolumn=yes:1
 " fold を無効にする
 set nofoldenable
 " 常にステータスラインを表示する
@@ -274,6 +271,8 @@ set softtabstop=4
 " 新規ウィンドウを右/下に開く
 set splitbelow
 set splitright
+" CursorHold のタイミング
+set updatetime=300
 " spell check
 "set spell
 
@@ -282,8 +281,6 @@ set splitright
 let g:vsnip_snippet_dir = expand('~/.vim/snip')
 " rust ファイルを保存時，自動で rustfmt にかける
 let g:rustfmt_autosave = 1
-" CursorHold が発動するまでのマージン
-let g:cursorhold_updatetime = 300
 " * で検索時にカーソルを移動しない
 let g:asterisk#keeppos = 1
 " 翻訳時の対象言語
@@ -364,20 +361,38 @@ endfunction
 
 " lsp_lines を切り替える
 let g:lsp_lines_is_enable = 0
-nnoremap <leader>l <Cmd>call LspLinesToggle()<cr>
-function LspLinesToggle()
-    if g:lsp_lines_is_enable == 0
-        let g:lsp_lines_is_enable = 1
-    else
+let g:lsp_float_is_enable = 1
+nnoremap <leader>l0 <Cmd>call DisableDiagnostic()<cr>
+function DisableDiagnostic()
+    if g:lsp_lines_is_enable == 1
+        lua require('lsp_lines').toggle()
         let g:lsp_lines_is_enable = 0
     endif
-    lua require('lsp_lines').toggle()
+    let g:lsp_float_is_enable = 0
+endfunction
+
+nnoremap <leader>l1 <Cmd>call EnableDiagnosticWithFloat()<cr>
+function EnableDiagnosticWithFloat()
+    if g:lsp_lines_is_enable == 1
+        lua require('lsp_lines').toggle()
+        let g:lsp_lines_is_enable = 0
+    endif
+    let g:lsp_float_is_enable = 1
+endfunction
+
+nnoremap <leader>l2 <Cmd>call EnableDiagnosticWithLine()<cr>
+function EnableDiagnosticWithLine()
+    if g:lsp_lines_is_enable == 0
+        lua require('lsp_lines').toggle()
+        let g:lsp_lines_is_enable = 1
+    endif
+    let g:lsp_float_is_enable = 0
 endfunction
 
 " diagnostic を float で開く
 autocmd CursorHold * call ShowDiagnostics()
 function ShowDiagnostics()
-    if g:lsp_lines_is_enable == 0
+    if g:lsp_float_is_enable == 1
         lua require('lspsaga.diagnostic').show_line_diagnostics()
     endif
 endfunction
@@ -483,6 +498,17 @@ require("ibl").setup({
        show_start = true,
        show_end = false,
     }
+})
+EOT
+
+
+"----------------------------------------------------------
+" Gitsigns
+"----------------------------------------------------------
+lua << EOT
+require('gitsigns').setup({
+    signcolumn = false,
+    numhl = true
 })
 EOT
 
@@ -599,22 +625,22 @@ EOT
 "---------------------------------------------------------
 lua <<EOT
 require("noice").setup({
-  lsp = {
+lsp = {
     -- override markdown rendering so that **cmp** and other plugins use **Treesitter**
     override = {
-      ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
-      ["vim.lsp.util.stylize_markdown"] = true,
-      ["cmp.entry.get_documentation"] = true,
+        ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
+        ["vim.lsp.util.stylize_markdown"] = true,
+        ["cmp.entry.get_documentation"] = true,
     },
-  },
-  -- you can enable a preset for easier configuration
-  presets = {
+    },
+-- you can enable a preset for easier configuration
+presets = {
     bottom_search = true, -- use a classic bottom cmdline for search
     command_palette = true, -- position the cmdline and popupmenu together
     long_message_to_split = true, -- long messages will be sent to a split
     inc_rename = false, -- enables an input dialog for inc-rename.nvim
     lsp_doc_border = false, -- add a border to hover docs and signature help
-  },
+},
 })
 EOT
 
@@ -758,12 +784,5 @@ require('mason-lspconfig').setup_handlers({
 vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
     vim.lsp.diagnostic.on_publish_diagnostics, { virtual_text = false }
 )
-vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(
-  vim.lsp.handlers.hover, { separator = true }
-)
-vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(
-  vim.lsp.handlers.signature_help, { separator = true }
-)
-
 EOT
 
