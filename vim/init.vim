@@ -45,8 +45,6 @@ Plug 'folke/tokyonight.nvim'
 Plug 'ryanoasis/vim-devicons'
 " 括弧の補完
 Plug 'windwp/nvim-autopairs'
-" ファイルツリーの表示
-Plug 'preservim/nerdtree'
 " 日本語改行時の禁則処理
 Plug 'vim-jp/autofmt'
 " Rust フォーマッタ
@@ -64,8 +62,6 @@ Plug 'skywind3000/asyncrun.vim'
 Plug 'norcalli/nvim-colorizer.lua'
 " TODO などを目立たせる
 Plug 'folke/todo-comments.nvim'
-" スクロールバーを表示
-Plug 'petertriho/nvim-scrollbar'
 " fで一発移動できる文字をハイライト
 Plug 'unblevable/quick-scope'
 " *でカーソルを移動しなくする
@@ -106,8 +102,6 @@ Plug 'machakann/vim-sandwich'
 Plug 'akinsho/toggleterm.nvim'
 " ポップアップ通知を出す
 Plug 'rcarriga/nvim-notify'
-" sidebar
-Plug 'sidebar-nvim/sidebar.nvim'
 " スクロールをスムーズにする
 Plug 'karb94/neoscroll.nvim'
 " vim 上で翻訳する
@@ -118,8 +112,6 @@ Plug 'numToStr/Comment.nvim'
 Plug 'andymass/vim-matchup'
 " latex 用エコシステム
 Plug 'lervag/vimtex'
-" hex editor
-Plug 'Shougo/vinarise.vim'
 " spell checker
 Plug 'lewis6991/spellsitter.nvim'
 " 自動でインデント幅を設定する
@@ -177,11 +169,10 @@ require('todo-comments').setup({})
 require('toggleterm').setup({})
 require('nvim-treesitter.configs').setup({yati = { enable = true }})
 require('notify').setup()
-require('sidebar-nvim').setup({})
 require('neoscroll').setup()
 require('Comment').setup()
 require('orgmode').setup_ts_grammar()
-require('orgmode').setup({})
+require('orgmode').setup()
 require('spellsitter').setup()
 require('null-ls').setup()
 require('mason-null-ls').setup()
@@ -189,7 +180,7 @@ require('session_manager').setup({ autoload_mode = require('session_manager.conf
 require('dressing').setup()
 require('lsp_lines').setup()
 require('urlview').setup()
---require('which-key').setup({})
+require('which-key').setup()
 EOT
 
 "----------------------------------------------------------
@@ -271,8 +262,6 @@ set splitbelow
 set splitright
 " CursorHold のタイミング
 set updatetime=300
-" spell check
-"set spell
 
 
 " スニペットの保存先
@@ -302,8 +291,6 @@ let g:vimtex_compiler_method = 'generic'
 let g:vimtex_compiler_generic = {
     \ 'command' : 'make all',
     \}
-" バイナリファイルを開くと hex editor を起動する
-let g:vinarise_enable_auto_detect = 0
 " Silicon のフォントに HackGenNerd を使う
 let g:silicon = {'font': 'HackGenNerd'}
 " VimTex のハイライトを無効にする
@@ -337,11 +324,6 @@ nnoremap <leader>ff <cmd>Telescope find_files<cr>
 nnoremap <leader>fg <cmd>Telescope live_grep<cr>
 nnoremap <leader>fb <cmd>Telescope buffers<cr>
 nnoremap <leader>fh <cmd>Telescope help_tags<cr>
-" ToggleTerm 用バインド
-nnoremap <c-y> <Cmd>ToggleTerm size=80 direction=vertical<cr>
-nnoremap <c-t> <Cmd>ToggleTerm direction=float<cr>
-" Sidebar を開く
-nnoremap <leader>a <Cmd>SidebarNvimToggle<cr>
 " Session Manager
 nnoremap <leader>sl <Cmd>SessionManager load_last_session<cr>
 nnoremap <leader>ss <Cmd>SessionManager load_session<cr>
@@ -356,25 +338,6 @@ function CenteringCursorToggle()
         set scrolloff=999
     endif
 endfunction
-
-" lazygit を ToggleTerm で開く
-nnoremap <leader>g <Cmd>lua _lazygit_toggle()<cr>
-lua <<EOT
-local Terminal = require("toggleterm.terminal").Terminal
-local lazygit = Terminal:new({ cmd = "lazygit", direction = "float" })
-function _lazygit_toggle()
-    lazygit:toggle()
-end
-EOT
-
-" ToggleTerm 中のキーマップ
-autocmd! TermOpen term://* lua set_terminal_keymaps()
-lua << EOT
-function _G.set_terminal_keymaps()
-  local opts = {noremap = true}
-  vim.api.nvim_buf_set_keymap(0, 't', '<esc>', [[<C-\><C-n>]], opts)
-end
-EOT
 
 " 自動でインデント幅を検出する
 autocmd BufRead * DetectIndent
@@ -443,6 +406,32 @@ hi Search guibg='#555555'
 " matchup highliting parentheses
 hi MatchWord guifg='#bf6648' gui=underline
 hi MatchParen guifg='#bf6648'
+
+
+"----------------------------------------------------------
+" toggle term
+"----------------------------------------------------------
+lua <<EOT
+-- ToggleTerm 用 keybind
+vim.api.nvim_set_keymap('n', '<C-t>', '<Cmd>ToggleTerm direction=float<CR>', {noremap = true, silent = true})
+vim.api.nvim_set_keymap('n', '<C-y>', '<Cmd>ToggleTerm size=80 direction=vertical<CR>', {noremap = true, silent = true})
+
+-- lazygit を ToggleTerm で開く
+local Terminal = require("toggleterm.terminal").Terminal
+local lazygit = Terminal:new({ cmd = "lazygit", direction = "float" })
+local function open_lazygit()
+    lazygit:toggle()
+end
+vim.api.nvim_set_keymap('n', '<leader>g', '', {noremap = true, silent = true, callback = open_lazygit})
+
+-- Terminal 内でも <ESC> を使えるようにする
+vim.api.nvim_create_autocmd('TermOpen', {
+    pattern = {'term://*'},
+    callback = function()
+        vim.api.nvim_buf_set_keymap(0, 't', '<ESC>', [[<C-\><C-n>]], {noremap = true, silent = true})
+    end
+})
+EOT
 
 
 "----------------------------------------------------------
@@ -642,10 +631,10 @@ cmp.setup({
     }),
     experimental = { ghost_text = false },
     sources = cmp.config.sources({
-            { name = 'nvim_lsp' },
-            { name = 'vsnip' },
-            { name = 'buffer', keyword_length = 4 },
-            { name = 'path' },
+        { name = 'nvim_lsp' },
+        { name = 'vsnip' },
+        { name = 'buffer', keyword_length = 4 },
+        { name = 'path' },
     })
 })
 
@@ -666,8 +655,8 @@ cmp.setup.cmdline(':', {
 })
 
 cmp.event:on(
-  'confirm_done',
-  cmp_autopairs.on_confirm_done()
+    'confirm_done',
+    cmp_autopairs.on_confirm_done()
 )
 
 ------------------------------------------------------------
