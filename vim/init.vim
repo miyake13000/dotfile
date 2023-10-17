@@ -149,7 +149,7 @@ Plug 'jose-elias-alvarez/null-ls.nvim'
 " null-ls を mason に対応させる
 Plug 'jayp0521/mason-null-ls.nvim'
 " LSP のUI を改善する
-Plug 'tami5/lspsaga.nvim'
+Plug 'nvimdev/lspsaga.nvim'
 
 " lua 用 plugin
 Plug 'nvim-lua/popup.nvim'
@@ -183,13 +183,11 @@ require('Comment').setup()
 require('orgmode').setup_ts_grammar()
 require('orgmode').setup({})
 require('spellsitter').setup()
-require('lspsaga').setup()
 require('null-ls').setup()
 require('mason-null-ls').setup()
 require('session_manager').setup({ autoload_mode = require('session_manager.config').AutoloadMode.Disabled })
 require('dressing').setup()
 require('lsp_lines').setup()
-require('lsp_lines').toggle()
 require('urlview').setup()
 --require('which-key').setup({})
 EOT
@@ -324,10 +322,10 @@ let maplocalleader = "\<space>"
 " jk でインサートモードを抜ける
 inoremap <silent> jk <ESC>
 " ESC 2回でサーチのハイライトを消す
-nnoremap <ESC><ESC> :nohlsearch<CR>
+nnoremap <silent> <ESC><ESC> :nohlsearch<CR>
 " 行が折り返し表示されていた場合、行単位ではなく表示行単位でカーソルを移動する
-nnoremap j gj
-nnoremap k gk
+nnoremap <silent> j gj
+nnoremap <silent> k gk
 " 検索結果が画面中央に来るようにする
 nmap n nzz
 nmap N Nzz
@@ -356,44 +354,6 @@ function CenteringCursorToggle()
         set scrolloff=0
     else
         set scrolloff=999
-    endif
-endfunction
-
-" lsp_lines を切り替える
-let g:lsp_lines_is_enable = 0
-let g:lsp_float_is_enable = 1
-nnoremap <leader>l0 <Cmd>call DisableDiagnostic()<cr>
-function DisableDiagnostic()
-    if g:lsp_lines_is_enable == 1
-        lua require('lsp_lines').toggle()
-        let g:lsp_lines_is_enable = 0
-    endif
-    let g:lsp_float_is_enable = 0
-endfunction
-
-nnoremap <leader>l1 <Cmd>call EnableDiagnosticWithFloat()<cr>
-function EnableDiagnosticWithFloat()
-    if g:lsp_lines_is_enable == 1
-        lua require('lsp_lines').toggle()
-        let g:lsp_lines_is_enable = 0
-    endif
-    let g:lsp_float_is_enable = 1
-endfunction
-
-nnoremap <leader>l2 <Cmd>call EnableDiagnosticWithLine()<cr>
-function EnableDiagnosticWithLine()
-    if g:lsp_lines_is_enable == 0
-        lua require('lsp_lines').toggle()
-        let g:lsp_lines_is_enable = 1
-    endif
-    let g:lsp_float_is_enable = 0
-endfunction
-
-" diagnostic を float で開く
-autocmd CursorHold * call ShowDiagnostics()
-function ShowDiagnostics()
-    if g:lsp_float_is_enable == 1
-        lua require('lspsaga.diagnostic').show_line_diagnostics()
     endif
 endfunction
 
@@ -581,31 +541,6 @@ EOT
 
 
 "----------------------------------------------------------
-" scrollbar
-"----------------------------------------------------------
-lua <<EOF
--- require("scrollbar").setup({
---     show_in_active_only = true,
---     hide_if_all_visible = false,
---     handle = {
---         color = '#555555',
---     },
---     marks = {
---         Search = { color = '#CCCCCC' },
---         Error = { color = '#D75F5F' },
---         Warn = { color = '#FFAF5F' },
---         Info = { color = '#4169E1' },
---         Hint = { color = '#3CB371' },
---         Misc = { color = '#9A8EB8' },
---     }
--- })
---
--- require("scrollbar.handlers.search").setup({nearest_only = true})
--- require("scrollbar.handlers.gitsigns").setup()
-EOF
-
-
-"----------------------------------------------------------
 " autopairs
 "---------------------------------------------------------
 lua <<EOT
@@ -621,7 +556,7 @@ npairs.setup({
 EOT
 
 "----------------------------------------------------------
-" autopairs
+" noice
 "---------------------------------------------------------
 lua <<EOT
 require("noice").setup({
@@ -649,6 +584,20 @@ EOT
 " LSP settings
 "---------------------------------------------------------
 lua <<EOT
+
+------------------------------------------------------------
+-- lspsaga settings
+------------------------------------------------------------
+require('lspsaga').setup({
+    ui = {
+        code_action = ''
+    },
+    lightbulb = {
+        virtual_text = false
+    }
+})
+
+
 ------------------------------------------------------------
 -- completion settings
 ------------------------------------------------------------
@@ -720,35 +669,46 @@ cmp.event:on(
   'confirm_done',
   cmp_autopairs.on_confirm_done()
 )
+
 ------------------------------------------------------------
 -- keybindings
 ------------------------------------------------------------
+local function change_diagnostic_state(float, text, line)
+    return function()
+        vim.g.lsp_float_is_enable = float
+        vim.diagnostic.config({virtual_text = text, virtual_lines = line})
+    end
+end
+local function show_line_diagnostics()
+    if vim.g.lsp_float_is_enable then
+        vim.cmd('Lspsaga show_line_diagnostics ++unfocus')
+    end
+end
+
 local on_attach = function(client, bufnr)
-    local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
+    local function set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
 
     local opts = { noremap=true, silent=true }
-    buf_set_keymap("n", "gd",  "<cmd>lua vim.lsp.buf.definition()<CR>", opts)
-    buf_set_keymap("n", "gq",  "<cmd>Telescope diagnostics<CR>", opts)
-    buf_set_keymap("n", "gr",  "<cmd>Telescope lsp_references<CR>", opts)
-    buf_set_keymap("n", "gi",  "<cmd>Telescope lsp_implementations()<CR>", opts)
-    buf_set_keymap("n", "gtd", "<cmd>Telescope lsp_type_definitions()<CR>", opts)
-    buf_set_keymap("n", "grn", "<cmd>lua require('lspsaga.rename').rename()<CR>", opts)
-    buf_set_keymap("n", "gca", "<cmd>lua require('lspsaga.codeaction').code_action()<CR>", opts)
+    set_keymap("n", "gj",  "<cmd>Lspsaga goto_definition<CR>", opts)
+    set_keymap("n", "gd",  "<cmd>Lspsaga peek_definition<CR>", opts)
+    set_keymap("n", "grn", "<cmd>Lspsaga rename<CR>", opts)
+    set_keymap("n", "gca", "<cmd>Lspsaga code_action<CR>", opts)
+    set_keymap("n", "gs",  "<cmd>Lspsaga hover_doc<CR>", opts)
+    set_keymap("n", "gn",  "<cmd>Lspsaga diagnostic_jump_next<CR>", opts)
+    set_keymap("n", "gp",  "<cmd>Lspsaga diagnostic_jump_prev<CR>", opts)
+    set_keymap('n', '<leader>l0', '', {callback = change_diagnostic_state(false, false, false)})
+    set_keymap('n', '<leader>l1', '', {callback = change_diagnostic_state(true,  false, false)})
+    set_keymap('n', '<leader>l2', '', {callback = change_diagnostic_state(false, true,  false)})
+    set_keymap('n', '<leader>l3', '', {callback = change_diagnostic_state(false, false, true )})
+    vim.api.nvim_create_autocmd('CursorHold', {
+        pattern = {'*'},
+        callback = show_line_diagnostics
+    })
 end
 
-local function show_documentation()
-  local ft = vim.opt.filetype._value
-  if ft == 'vim' or ft == 'help' then
-    vim.cmd([[execute 'h ' . expand('<cword>') ]])
-  else
-    require('lspsaga.hover').render_hover_doc()
-  end
-end
-
-vim.keymap.set({ 'n' }, 'gs', show_documentation)
 
 ------------------------------------------------------------
--- lsp settings
+-- server settings
 ------------------------------------------------------------
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
@@ -780,9 +740,14 @@ require('mason-lspconfig').setup_handlers({
     end
 })
 
--- false : do not show error/warning/etc.. by virtual text
-vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
-    vim.lsp.diagnostic.on_publish_diagnostics, { virtual_text = false }
-)
+------------------------------------------------------------
+-- diagnostic settings
+------------------------------------------------------------
+
+-- open diagnostic on floatng window
+vim.g.lsp_float_is_enable=true
+-- disable default diagnostic (virtual text)
+vim.diagnostic.config({virtual_lines = false, virtual_text = false})
+
 EOT
 
