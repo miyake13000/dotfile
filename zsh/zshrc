@@ -41,7 +41,7 @@ eval "$(starship init zsh)"
 ############################################
 # vim
 alias v='nvim'
-alias vimrc="nvim ~/.config/nvim/init.vim"
+alias vimrc="nvim ~/.config/nvim/init.lua"
 # ls
 alias ls='ls --color=auto'
 alias ll='ls -l'

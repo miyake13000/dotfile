@@ -42,9 +42,9 @@ setup-zsh: check-command
 setup-nvim: check-command
 	mkdir -p ~/.config/nvim
 	mkdir -p ~/.local/bin
-	mkdir -p ~/.vim
-	ln -sf $(CWD)/vim/init.vim ~/.config/nvim/init.vim
-	ln -sf $(CWD)/vim/snip ~/.vim/snip
+	mkdir -p ~/.local/share/nvim
+	ln -sf $(CWD)/vim/init.lua ~/.config/nvim/init.lua
+	ln -sf $(CWD)/vim/snip ~/.local/share/nvim/snip
 	ln -sf $(CWD)/scripts/nvim-update.sh ~/.local/bin/nvim-update
 	ln -sf $(CWD)/scripts/ggr.sh ~/.local/bin/ggr
 	$(CWD)/scripts/nvim-update.sh --force
