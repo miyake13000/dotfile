@@ -122,7 +122,7 @@ set_keymap('i', '<C-k>', '<Del>', opts)
 -----------------------------------------------------------
 -- カーソルが常に画面の中心になるようにする
 vim.api.nvim_create_user_command( 'CenterCursorToggle', function()
-    if vim.opt.scrolloff == 999 then
+    if vim.o.scrolloff == 999 then
         vim.opt.scrolloff = 0
     else
         vim.opt.scrolloff = 999
@@ -714,7 +714,17 @@ require('lazy').setup({
                     ['<C-f>'] = cmp.mapping.scroll_docs(4),
                     ['<C-s>'] = cmp.mapping.complete(),
                     ['<C-c>'] = cmp.mapping.abort(),
-                    ['<CR>'] = cmp.mapping.confirm({ select = false }),
+                    ["<CR>"] = cmp.mapping({
+                        i = function(fallback)
+                            if cmp.visible() and cmp.get_active_entry() then
+                                cmp.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = false })
+                            else
+                                fallback()
+                            end
+                        end,
+                        s = cmp.mapping.confirm({ select = true }),
+                        c = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = false }),
+                    }),
                 }),
                 sources = cmp.config.sources({
                     { name = 'nvim_lsp' },
@@ -797,7 +807,9 @@ require('lazy').setup({
                 set_keymap('n', 'gs',  '<cmd>Lspsaga hover_doc<CR>', opts)
                 set_keymap('n', 'gn',  '<cmd>Lspsaga diagnostic_jump_next<CR>', opts)
                 set_keymap('n', 'gp',  '<cmd>Lspsaga diagnostic_jump_prev<CR>', opts)
+                vim.api.nvim_create_augroup("lsp_diagnostics_hold", {})
                 vim.api.nvim_create_autocmd('CursorHold', {
+                    group = "lsp_diagnostics_hold",
                     desc = 'Open Diagnostic with Float',
                     callback = function()
                         vim.cmd('Lspsaga show_line_diagnostics ++unfocus')
