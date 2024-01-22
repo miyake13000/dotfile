@@ -295,15 +295,6 @@ require('lazy').setup({
             'nvim-tree/nvim-web-devicons'
         },
         config = function()
-            local function show_macro_recording()
-                local recording_register = vim.fn.reg_recording()
-                if recording_register == "" then
-                    return ""
-                else
-                    return "Recording @" .. recording_register
-                end
-            end
-
             local colors = require('tokyonight.colors').setup()
             local my_a = { fg = colors.fg, bg = colors.dark4}
             local my_b = { fg = colors.fg, bg = colors.dark3}
@@ -318,9 +309,6 @@ require('lazy').setup({
                         'filename',
                         file_status = false,
                         path = 3,
-                    }, {
-                        "macro-recording",
-                        fmt = show_macro_recording,
                     },
                     'selectioncount',
                 },
@@ -477,6 +465,15 @@ require('lazy').setup({
             },
         },
     }, {
+        -- Cycling buffer
+        'ghillb/cybu.nvim',
+        event = 'VeryLazy',
+        config = function()
+            require("cybu").setup()
+            vim.keymap.set({'n', 'v'}, '<C-j>', '<Plug>(CybuNext)', {remap=true})
+            vim.keymap.set({'n', 'v'}, '<C-k>', '<Plug>(CybuPrev)', {remap=true})
+        end
+    }, {
         -- インデントの可視化
         'lukas-reineke/indent-blankline.nvim',
         event = 'BufEnter',
@@ -603,6 +600,11 @@ require('lazy').setup({
         -- comment out プラグイン
         'numToStr/Comment.nvim',
         event = 'UIEnter',
+        opts = {},
+    }, {
+        -- show macro status
+        "chrisgrieser/nvim-recorder",
+        dependencies = "rcarriga/nvim-notify",
         opts = {},
     }, {
         -- URL を開く
