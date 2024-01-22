@@ -1,0 +1,42 @@
+# `sheldon` configuration file
+# ----------------------------
+#
+# You can modify this file directly or you can use one of the following
+# `sheldon` commands which are provided to assist in editing the config file:
+#
+# - `sheldon add` to add a new plugin to the config file
+# - `sheldon edit` to open up the config file in the default editor
+# - `sheldon remove` to remove a plugin from the config file
+#
+# See the documentation for more https://github.com/rossmacarthur/sheldon#readme
+
+## Lazy load for plugin
+[plugins.defer]
+github = "romkatv/zsh-defer"
+
+[templates]
+defer = "{% for file in files %}zsh-defer source \"{{ file }}\"\n{% endfor %}"
+
+## highlight path, command, etc.
+[plugins.syntax-highlighting]
+github = "zsh-users/zsh-syntax-highlighting"
+# apply = ["defer"]
+
+## Suggest command once used
+[plugins.autosuggestions]
+github = "zsh-users/zsh-autosuggestions"
+apply = ["defer"]
+
+## Make completion more useful
+[plugins.completions]
+github = "zsh-users/zsh-completions"
+apply = ["defer"]
+
+## Show completion entry
+[plugins.autocomplete]
+github = "marlonrichert/zsh-autocomplete"
+
+## Back directory (bd) command
+[plugins.bd]
+github = "Tarrasch/zsh-bd"
+apply = ["defer"]
