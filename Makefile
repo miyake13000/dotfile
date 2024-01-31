@@ -39,7 +39,7 @@ setup-zsh: check-command
 	ln -sf $(CWD)/zsh/plugins.toml ~/.config/sheldon/plugins.toml
 	$(BINSTALL) sheldon
 	$(BINSTALL) starship
-	$(BINSTALL) fzf
+	$(CWD)/scripts/install-tools.sh fzf
 
 setup-nvim: check-command
 	mkdir -p ~/.config/nvim
@@ -79,7 +79,7 @@ update-zsh: check-command
 	mkdir -p ~/.local/bin
 	$(BINSTALL) sheldon
 	$(BINSTALL) starship
-	$(BINSTALL) fzf
+	$(CWD)/scripts/install-tools.sh fzf
 
 update-nvim: check-command
 	mkdir -p ~/.local/bin
