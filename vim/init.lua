@@ -1,10 +1,12 @@
+vim.loader.enable()
+
 vim.opt.encoding = 'utf8'
 vim.scriptencoding = 'utf8'
 
 -----------------------------------------------------------
 -- Machine detection
 -----------------------------------------------------------
-if vim.fn.system({'sh', '-c', 'uname -r | grep -c microsoft'}) == 1 then
+if vim.fn.system({ 'sh', '-c', 'uname -r | grep -c microsoft' }) == 1 then
     local is_wsl = true
 else
     local is_wsl = false
@@ -32,7 +34,7 @@ vim.opt.clipboard = 'unnamedplus'
 -- UTF-8 で保存する
 vim.opt.fileencoding = 'utf-8'
 -- 読込み時に文字コードを自動で判別する(左優先)
-vim.opt.fileencodings= 'ucs-boms,utf-8,euc-jp,cp932'
+vim.opt.fileencodings = 'ucs-boms,utf-8,euc-jp,cp932'
 -- 改行コードの自動判別(左優先)
 vim.opt.fileformats = 'unix,dos,mac'
 -- 文字幅不明の文字に適応する文字幅
@@ -47,7 +49,7 @@ vim.opt.autoindent = true
 vim.opt.smartindent = true
 -- tabを可視化
 vim.opt.list = true
-vim.opt.listchars = {tab = '<->'}
+vim.opt.listchars = { tab = '<->' }
 -- １文字入力毎に検索を行う
 vim.opt.incsearch = true
 -- 検索パターンに大文字小文字を区別しない
@@ -116,12 +118,23 @@ set_keymap('c', '<C-l>', '<Right>', opts)
 -- BS, Del の remap
 set_keymap('i', '<C-j>', '<BS>', opts)
 set_keymap('i', '<C-k>', '<Del>', opts)
+-- buffer の切替
+set_keymap('n', '<C-j>', ':bn<CR>', opts)
+set_keymap('n', '<C-k>', ':bp<CR>', opts)
+
+vim.keymap.set('n', '<leader>j', function()
+    vim.lsp.buf.format {
+        timeout_ms = 200,
+        async = true,
+    }
+end)
+
 
 -----------------------------------------------------------
 -- my command
 -----------------------------------------------------------
 -- カーソルが常に画面の中心になるようにする
-vim.api.nvim_create_user_command( 'CenterCursorToggle', function()
+vim.api.nvim_create_user_command('CenterCursorToggle', function()
     if vim.o.scrolloff == 999 then
         vim.opt.scrolloff = 0
     else
@@ -142,14 +155,13 @@ vim.api.nvim_create_autocmd('BufRead', {
                     not (ft:match('commit') and ft:match('rebase'))
                     and last_known_line > 1
                     and last_known_line <= vim.api.nvim_buf_line_count(opts.buf)
-                    then
-                        vim.api.nvim_feedkeys([[g`"]], 'nx', false)
-                    end
-                end,
-            })
-        end,
-    }
-)
+                then
+                    vim.api.nvim_feedkeys([[g`"]], 'nx', false)
+                end
+            end,
+        })
+    end,
+})
 
 
 -----------------------------------------------------------
@@ -179,94 +191,23 @@ local lazy_opt = {
 
 
 require('lazy').setup({
------------------------------------------------------------
--- colorscheme
------------------------------------------------------------
+    -----------------------------------------------------------
+    -- colorscheme
+    -----------------------------------------------------------
     {
-        -- colorscheme TODO:
-        'folke/tokyonight.nvim',
+        -- colorscheme
+        'olimorris/onedarkpro.nvim',
         lazy = false,
         priority = 1000,
         config = function()
-            require('tokyonight').setup({
-                styles = {
-                    comments = { italic = false },
-                    keywords = { italic = false },
+            require('onedarkpro').setup({
+                colors = {
+                    fg = '#f0f0f0',
+                    bg = '#101010',
                 },
-                terminal_colors = true,
-                hide_inactive_statusline = false,
-                on_colors = function(colors)
-                    colors.none = "NONE"
-                    colors.bg = '#101010'
-                    colors.bg_dark = '#080808'
-                    colors.bg_float = colors_bg
-                    colors.bg_highlight = '#202020'
-                    colors.bg_popup = "#16161e"
-                    colors.bg_search = "#3d59a1"
-                    colors.bg_sidebar = "#16161e"
-                    colors.bg_statusline = "#16161e"
-                    colors.bg_visual = '#404040'
-                    colors.fg = '#f0f0f0'
-                    colors.fg_dark = '#c0c0c0'
-                    colors.fg_float = "#c0caf5"
-                    colors.fg_gutter = '#505050'
-                    colors.fg_sidebar = "#a9b1d6"
-                    colors.dark3 = '#404040'
-                    colors.dark4 = '#606060'
-                    colors.dark5 = '#a5a5a5'
-                    colors.terminal_black = "#414868"
-                    colors.comment = '#808080'
-                    colors.error = "#db4b4b"
-                    colors.hint = "#1abc9c"
-                    colors.info = "#0db9d7"
-                    colors.warning = "#e0af68"
-                    colors.border = colors.dark5
-                    colors.border_highlight = colors.dark5
-                    colors.black = "#15161e"
-                    colors.blue = '#7aa2f7'
-                    colors.cyan = '#7dcfff'
-                    colors.blue0 = '#d75f5f'
-                    colors.blue1 = '#ffaf5f'
-                    colors.blue2 = '#c0c000'
-                    colors.blue5 = '#3cb371'
-                    colors.blue6 = '#4169e1'
-                    colors.blue7 = '#8a2be2'
-                    colors.green = "#9ece6a"
-                    colors.green1 = "#73daca"
-                    colors.green2 = "#41a6b5"
-                    colors.magenta = "#bb9af7"
-                    colors.magenta2 = "#ff007c"
-                    colors.orange = "#ff9e64"
-                    colors.purple = "#9d7cd8"
-                    colors.red = "#f7768e"
-                    colors.red1 = "#db4b4b"
-                    colors.teal = "#1abc9c"
-                    colors.yellow = "#e0af68"
-                    colors.git = {
-                        add = "#449dab",
-                        change = "#6183bb",
-                        delete = "#914c54",
-                        ignore = "#545c7e"
-                    }
-                    colors.gitSigns = {
-                        change = colors.orange,
-                        add = colors.green,
-                        delete = colors.red
-                    }
-                    colors.delta = {
-                        add = "#2c5a66",
-                        delete = "#713137"
-                    }
-                    colors.diff = {
-                        add = "#20303b",
-                        change = "#1f2231",
-                        delete = "#37222c",
-                        text = "#394b70"
-                    }
-                end
             })
-            vim.cmd('colorscheme tokyonight-night')
-
+            vim.cmd("colorscheme onedark_dark")
+            vim.api.nvim_set_hl(0, "@punctuation.special.latex", { link = 'Special' })
             -- Darkmode と Lightmode を入れ替える
             local is_dark = true
             vim.api.nvim_create_user_command(
@@ -276,34 +217,34 @@ require('lazy').setup({
                         vim.cmd('colorscheme tokyonight-day')
                         is_dark = false
                     else
-                        vim.cmd('colorscheme tokyonight-night')
+                        vim.cmd('colorscheme onedark_dark')
                         is_dark = true
                     end
                 end,
                 {}
             )
         end
+    }, {
+        -- light mode 用 colorscheme
+        "folke/tokyonight.nvim",
+        event = VeryLazy,
+        priority = 1000,
+        opts = {},
     },
------------------------------------------------------------
--- status line
------------------------------------------------------------
+    -----------------------------------------------------------
+    -- status line
+    -----------------------------------------------------------
     {
-        -- lua 製 status line TODO:
+        -- lua 製 status line
         'nvim-lualine/lualine.nvim',
         event = 'VimEnter',
         dependencies = {
             'nvim-tree/nvim-web-devicons'
         },
         config = function()
-            local colors = require('tokyonight.colors').setup()
-            local my_a = { fg = colors.fg, bg = colors.dark4}
-            local my_b = { fg = colors.fg, bg = colors.dark3}
-            local my_c = { fg = colors.fg, bg = colors.bg}
-            local my_set = { a = my_a, b = my_b, c = my_c}
-            local my_theme = { visual = my_set, replace = my_set, inactive = my_set, normal = my_set, insert = my_set }
             local my_sections = {
-                lualine_a = {'filename'},
-                lualine_b = {'branch', 'diff', 'diagnostics'},
+                lualine_a = { 'filename' },
+                lualine_b = { 'branch', 'diff', 'diagnostics' },
                 lualine_c = {
                     {
                         'filename',
@@ -312,35 +253,25 @@ require('lazy').setup({
                     },
                     'selectioncount',
                 },
-                lualine_x = {{
+                lualine_x = { {
                     require('lazy.status').updates,
                     cond = require('lazy.status').has_updates,
-                }},
-                lualine_y = {'encoding', 'fileformat', 'filetype'},
-                lualine_z = {'%l/%L (%p%%)'}
+                } },
+                lualine_y = { 'encoding', 'fileformat', 'filetype' },
+                lualine_z = { '%l/%L (%p%%)' }
             }
             require('lualine').setup({
-                options = { theme  = my_theme },
                 sections = my_sections,
-                inactive_sections = my_sections,
             })
         end
     },
     -----------------------------------------------------------
--- non lua plugins
------------------------------------------------------------
+    -- non lua plugins
+    -----------------------------------------------------------
     {
         -- textwidth にあわせて線を引く
         'miyake13000/wrap-guide',
-        -- command = {'WrapGuideEnable', 'WrapGuideToggle'},
-        event = 'VeryLazy',
-    }, {
-        -- 日本語対応の折返し
-        'fuenor/JpFormat.vim',
-        command = 'JpFormat, JpFormatToggle',
-        config = function()
-            vim.cmd('let JpCountChars = 35')
-        end
+        command = {'WrapGuideEnable', 'WrapGuideToggle'},
     }, {
         -- quickfix-windows の見た目を改善
         'kevinhwang91/nvim-bqf',
@@ -381,19 +312,6 @@ require('lazy').setup({
                 'fugitive'
             }
             vim.api.nvim_set_hl(0, 'ExtraWhitespace', { bg = '#CF572D' })
-        end
-    }, {
-        -- vim 上で翻訳する
-        'voldikss/vim-translator',
-        keys = {
-            { '<leader>t', ':TranslateW<CR>', mode = {'n', 'v'}, desc = 'Translate', silent = true }
-        },
-        config = function()
-            -- 翻訳時の対象言語
-            vim.g.translator_target_lang = 'ja'
-            -- 翻訳結果を表示するウィンドウのサイズ
-            vim.g.translator_window_max_width = 0.9
-            vim.g.translator_window_max_height = 0.9
         end
     }, {
         -- latex 用エコシステム
@@ -437,9 +355,9 @@ require('lazy').setup({
             vim.g.matchup_matchparen_offscreen = { method = 'popup' }
         end
     },
------------------------------------------------------------
--- lua plugins
------------------------------------------------------------
+    -----------------------------------------------------------
+    -- lua plugins
+    -----------------------------------------------------------
     {
         -- status line を非表示にして，通知形式でメッセージを表示する
         'folke/noice.nvim',
@@ -465,20 +383,11 @@ require('lazy').setup({
             },
         },
     }, {
-        -- Cycling buffer
-        'ghillb/cybu.nvim',
-        event = 'VeryLazy',
-        config = function()
-            require("cybu").setup()
-            vim.keymap.set({'n', 'v'}, '<C-j>', '<Plug>(CybuNext)', {remap=true})
-            vim.keymap.set({'n', 'v'}, '<C-k>', '<Plug>(CybuPrev)', {remap=true})
-        end
-    }, {
         -- インデントの可視化
         'lukas-reineke/indent-blankline.nvim',
         event = 'BufEnter',
         main = 'ibl',
-        opts = { scope = { enabled = false }},
+        opts = { scope = { enabled = false } },
     }, {
         -- Insert mode から抜けると IME を無効にする
         'keaising/im-select.nvim',
@@ -508,7 +417,10 @@ require('lazy').setup({
         -- markdown のプレビューを表示する
         'iamcco/markdown-preview.nvim',
         cmd = { 'MarkdownPreviewToggle', 'MarkdownPreview', 'MarkdownPreviewStop' },
-        build = function() vim.fn['mkdp#util#install']() end,
+        build = "cd app && yarn install",
+        init = function()
+            vim.g.mkdp_filetypes = { "markdown" }
+        end,
     }, {
         -- カラーコードに色をつける
         'norcalli/nvim-colorizer.lua',
@@ -545,7 +457,7 @@ require('lazy').setup({
         event = 'BufEnter',
         dependencies = { 'nvim-tree/nvim-web-devicons' },
         config = function()
-          require('alpha').setup(require('alpha.themes.dashboard').config)
+            require('alpha').setup(require('alpha.themes.dashboard').config)
         end,
     }, {
         -- コードをハイライトする
@@ -562,19 +474,25 @@ require('lazy').setup({
         -- terminal の見た目をよくする
         'akinsho/toggleterm.nvim',
         keys = {
-             { '<C-t>', '<CMD>ToggleTerm direction=float<CR>' },
-             { '<C-y>', '<CMD>ToggleTerm direction=vertical size=80<CR>' },
-             { '<leader>g', '', desc = 'Open Lazygit', callback = function()
-                 require('toggleterm.terminal').Terminal:new({ cmd = 'lazygit', direction = 'float'}):toggle()
-             end}
+            { '<C-t>', '<CMD>ToggleTerm direction=float<CR>', mode = {'n', 'v', 'i'}, desc = 'ToggleTerm open float'},
+            { '<leader>yt', '<CMD>ToggleTerm direction=horizontal size=30<CR>', mode = {'n', 'v', 'i'}, desc = 'ToggleTerm open float'},
+            { '<leader>yy', '<CMD>ToggleTerm direction=vertical size=80<CR>', desc = 'ToggleTerm open side'},
+            {
+                '<leader>g',
+                '',
+                desc = 'Open Lazygit',
+                callback = function()
+                    require('toggleterm.terminal').Terminal:new({ cmd = 'lazygit', direction = 'float' }):toggle()
+                end
+            }
         },
         config = function()
             require('toggleterm').setup()
             -- Terminal 内でも <ESC> を使えるようにする
             vim.api.nvim_create_autocmd('TermOpen', {
-                pattern = {'term://*'},
+                pattern = { 'term://*' },
                 callback = function()
-                    vim.api.nvim_buf_set_keymap(0, 't', '<ESC>', [[<C-\><C-n>]], {noremap = true, silent = true})
+                    vim.api.nvim_buf_set_keymap(0, 't', '<ESC>', [[<C-\><C-n>]], { noremap = true, silent = true })
                 end
             })
         end
@@ -584,16 +502,16 @@ require('lazy').setup({
         event = 'UIEnter',
         config = function()
             require('neoscroll').setup({
-                mappings = {'<C-u>', '<C-d>', '<C-b>', '<C-s>', 'zt', 'zz', 'zb'}
+                mappings = { '<C-u>', '<C-d>', '<C-b>', '<C-f>', 'zt', 'zz', 'zb' }
             })
-            local key = {}
-            key['<C-u>'] = {'scroll', {'-vim.wo.scroll', 'true', '75'}}
-            key['<C-d>'] = {'scroll', { 'vim.wo.scroll', 'true', '75'}}
-            key['<C-b>'] = {'scroll', {'-vim.api.nvim_win_get_height(0)', 'true', '150'}}
-            key['<C-f>'] = {'scroll', { 'vim.api.nvim_win_get_height(0)', 'true', '150'}}
-            key['zt']    = {'zt', {'75'}}
-            key['zz']    = {'zz', {'75'}}
-            key['zb']    = {'zb', {'75'}}
+            local key    = {}
+            key['<C-u>'] = { 'scroll', { '-vim.wo.scroll', 'true', '75' } }
+            key['<C-d>'] = { 'scroll', { 'vim.wo.scroll', 'true', '75' } }
+            key['<C-b>'] = { 'scroll', { '-vim.api.nvim_win_get_height(0)', 'true', '150' } }
+            key['<C-f>'] = { 'scroll', { 'vim.api.nvim_win_get_height(0)', 'true', '150' } }
+            key['zt']    = { 'zt', { '75' } }
+            key['zz']    = { 'zz', { '75' } }
+            key['zb']    = { 'zb', { '75' } }
             require('neoscroll.config').set_mappings(key)
         end
     }, {
@@ -606,27 +524,6 @@ require('lazy').setup({
         "chrisgrieser/nvim-recorder",
         dependencies = "rcarriga/nvim-notify",
         opts = {},
-    }, {
-        -- URL を開く
-        'axieax/urlview.nvim',
-        event = 'UIEnter',
-        -- command = 'UrlView',
-        opts = {}
-    }, {
-        -- セッションを保存する
-        'Shatur/neovim-session-manager',
-        command = 'SessionManager',
-        keys = {
-            {'<leader>ss', '<CMD>SessionManager load_session<CR>'},
-            {'<leader>sl', '<CMD>SessionManager load_last_session<CR>'},
-            {'<leader>sc', '<CMD>SessionManager load_current_session<CR>'},
-        },
-        dependencies = { 'nvim-lua/plenary.nvim' },
-        config = function()
-            require('session_manager').setup({
-                autoload_mode = require('session_manager.config').AutoloadMode.Disabled
-            })
-        end,
     }, {
         -- vim.ui.select を改善
         'stevearc/dressing.nvim',
@@ -643,32 +540,86 @@ require('lazy').setup({
         config = function()
             local hop = require('hop')
             local directions = require('hop.hint').HintDirection
-            vim.keymap.set('', 'f', function() hop.hint_char1({ direction = directions.AFTER_CURSOR,  current_line_only = true  }) end, {remap=true})
-            vim.keymap.set('', 'F', function() hop.hint_char1({ direction = directions.BEFORE_CURSOR, current_line_only = true  }) end, {remap=true})
-            vim.keymap.set('', 't', function() hop.hint_char1({ direction = directions.AFTER_CURSOR,  current_line_only = false }) end, {remap=true})
-            vim.keymap.set('', 'T', function() hop.hint_char1({ direction = directions.BEFORE_CURSOR, current_line_only = false }) end, {remap=true})
+            vim.keymap.set('', 'f',
+            function() hop.hint_char1({ direction = directions.AFTER_CURSOR, current_line_only = true }) end,
+            { remap = true })
+            vim.keymap.set('', 'F',
+            function() hop.hint_char1({ direction = directions.BEFORE_CURSOR, current_line_only = true }) end,
+            { remap = true })
+            vim.keymap.set('', 't',
+            function() hop.hint_char1({ direction = directions.AFTER_CURSOR, current_line_only = false }) end,
+            { remap = true })
+            vim.keymap.set('', 'T',
+            function() hop.hint_char1({ direction = directions.BEFORE_CURSOR, current_line_only = false }) end,
+            { remap = true })
             hop.setup()
         end,
+    }, {
+        -- buffer line プラグイン
+        'akinsho/bufferline.nvim',
+        dependencies = { 'nvim-tree/nvim-web-devicons' },
+        opts = {
+            options = { separator_style = 'padded_slant' }
+        },
+    }, {
+        -- 行番号をインクリメンタルに表示する
+        'nacro90/numb.nvim',
+        event = 'VeryLazy',
+        opts = {},
+    }, {
+        -- Git Diff を 2 side で表示する
+        'sindrets/diffview.nvim',
+        event = 'VeryLazy',
+    }, {
+        -- vim 上で翻訳する
+        'uga-rosa/translate.nvim',
+        opts = {},
+        keys = {
+            { '<leader>t', ':Translate ja -output=floating<CR>', mode = { 'n', 'v' }, desc = 'Translate', silent = true }
+        },
+    }, {
+        -- ファイラ
+        'nvim-tree/nvim-tree.lua',
+        keys = {
+            { "<leader>o", "<cmd>NvimTreeToggle<CR>", desc = "NvimTreeToggle" },
+        },
+        opts = {},
     },
------------------------------------------------------------
--- Telescope plugin
------------------------------------------------------------
+    -----------------------------------------------------------
+    -- Telescope plugin
+    -----------------------------------------------------------
     {
         -- ファジーファインダー
         'nvim-telescope/telescope.nvim',
         cmd = 'Telescope',
         dependencies = { 'nvim-lua/plenary.nvim' },
         keys = {
-            {'<leader>ff', '<CMD>Telescope find_files<CR>'},
-            {'<leader>fg', '<CMD>Telescope live_grep<CR>'},
-            {'<leader>fb', '<CMD>Telescope buffers<CR>'},
-            {'<leader>fh', '<CMD>Telescope help_tags<CR>'},
+            { '<leader>ff', '<CMD>Telescope find_files<CR>', desc = 'Telescope find files'},
+            { '<leader>fg', '<CMD>Telescope live_grep<CR>', desc = 'Telescope live grep'},
         },
     },
------------------------------------------------------------
--- completion plugins
------------------------------------------------------------
+    -----------------------------------------------------------
+    -- completion plugins
+    -----------------------------------------------------------
     {
+        -- AI 補完
+        "zbirenbaum/copilot.lua",
+        event = VeryLazy,
+        config = function()
+            require("copilot").setup({
+                -- needed by copilot-cmp
+                suggestion = { enabled = false },
+                panel = { enabled = false },
+            })
+        end,
+    }, {
+        -- copilot.lua の nvim-cmp ソース
+        "zbirenbaum/copilot-cmp",
+        event = VeryLazy,
+        config = function()
+            require("copilot_cmp").setup()
+        end
+    }, {
         -- Completion
         'hrsh7th/nvim-cmp',
         event = 'UIEnter',
@@ -679,6 +630,7 @@ require('lazy').setup({
             'hrsh7th/cmp-cmdline',
             'hrsh7th/cmp-vsnip',
             'hrsh7th/vim-vsnip',
+            'zbirenbaum/copilot-cmp'
         },
         config = function()
             vim.opt.completeopt = 'menu,menuone,noselect'
@@ -686,6 +638,13 @@ require('lazy').setup({
             local feedkey = function(key, mode)
                 vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(key, true, true, true), mode, true)
             end
+            local has_words_before = function()
+                unpack = unpack or table.unpack
+                local line, col = unpack(vim.api.nvim_win_get_cursor(0))
+                return col ~= 0 and
+                vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
+            end
+            local lspkind = require('lspkind')
 
             cmp.setup({
                 snippet = {
@@ -698,22 +657,24 @@ require('lazy').setup({
                     documentation = cmp.config.window.bordered(),
                 },
                 mapping = cmp.mapping.preset.insert({
-                    ['<Tab>'] = cmp.mapping(function(fallback)
+                    ["<Tab>"] = cmp.mapping(function(fallback)
                         if cmp.visible() then
                             cmp.select_next_item()
-                        elseif vim.fn['vsnip#available'](1) == 1 then
-                            feedkey('<Plug>(vsnip-expand-or-jump)', '')
+                        elseif vim.fn["vsnip#available"](1) == 1 then
+                            feedkey("<Plug>(vsnip-expand-or-jump)", "")
+                        elseif has_words_before() then
+                            cmp.complete()
                         else
                             fallback()
                         end
                     end, { 'i', 's' }),
-                    ['<S-Tab>'] = cmp.mapping(function()
+                    ["<S-Tab>"] = cmp.mapping(function()
                         if cmp.visible() then
                             cmp.select_prev_item()
+                        elseif vim.fn["vsnip#jumpable"](-1) == 1 then
+                            feedkey("<Plug>(vsnip-jump-prev)", "")
                         end
-                    end, { 'i', 's' }),
-                    ['<C-b>'] = cmp.mapping.scroll_docs(-4),
-                    ['<C-f>'] = cmp.mapping.scroll_docs(4),
+                    end, { "i", "s" }),
                     ['<C-s>'] = cmp.mapping.complete(),
                     ['<C-c>'] = cmp.mapping.abort(),
                     ["<CR>"] = cmp.mapping({
@@ -731,9 +692,22 @@ require('lazy').setup({
                 sources = cmp.config.sources({
                     { name = 'nvim_lsp' },
                     { name = 'vsnip' },
-                    { name = 'buffer', keyword_length = 4 },
                     { name = 'path' },
-                })
+                    { name = 'buffer',  keyword_length = 3 },
+                    { name = 'copilot' },
+                }),
+                formatting = {
+                    fields = { "kind", "abbr", "menu" },
+                    format = function(entry, vim_item)
+                        local kind = require("lspkind").cmp_format({ mode = "symbol_text", maxwidth = 50 })(entry,
+                        vim_item)
+                        local strings = vim.split(kind.kind, "%s", { trimempty = true })
+                        kind.kind = " " .. (strings[1] or "") .. " "
+                        kind.menu = "    (" .. (strings[2] or "") .. ")"
+
+                        return kind
+                    end,
+                },
             })
 
             cmp.setup.cmdline('/', {
@@ -746,21 +720,19 @@ require('lazy').setup({
             cmp.setup.cmdline(':', {
                 mapping = cmp.mapping.preset.cmdline(),
                 sources = cmp.config.sources({
-                    { name = 'path' }
-                }, {
+                    { name = 'path' },
                     { name = 'cmdline' }
                 })
             })
         end
     },
------------------------------------------------------------
--- lsp plugins
------------------------------------------------------------
+    -----------------------------------------------------------
+    -- lsp plugins
+    -----------------------------------------------------------
     {
         -- LSP のセットアップ状況を表示する
         'j-hui/fidget.nvim',
-        tag = 'legacy',
-        event = 'LspAttach',
+        event = 'BufEnter',
         opts = {},
     }, {
         -- LSP のUI を改善する
@@ -792,34 +764,36 @@ require('lazy').setup({
             'williamboman/mason.nvim',
             'neovim/nvim-lspconfig',
             'simrat39/rust-tools.nvim',
+            "onsails/lspkind.nvim",
         },
         config = function()
             -- disable default diagnostic (virtual text)
-            vim.diagnostic.config({virtual_lines = false, virtual_text = false})
+            vim.diagnostic.config({ virtual_lines = false, virtual_text = false })
 
             local capabilities = require('cmp_nvim_lsp').default_capabilities()
             local on_attach = function(client, bufnr)
                 -- set keymap for lsp
                 local function set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
-                local opts = { noremap=true, silent=true }
-                set_keymap('n', 'gj',  '<cmd>Lspsaga goto_definition<CR>', opts)
-                set_keymap('n', 'gd',  '<cmd>Lspsaga peek_definition<CR>', opts)
+                local opts = { noremap = true, silent = true }
+                set_keymap('n', 'gj', '<cmd>Lspsaga goto_definition<CR>', opts)
+                set_keymap('n', 'gd', '<cmd>Lspsaga peek_definition<CR>', opts)
+                set_keymap('n', 'gr', '<cmd>Lspsaga finder<CR>', opts)
                 set_keymap('n', 'grn', '<cmd>Lspsaga rename<CR>', opts)
                 set_keymap('n', 'gca', '<cmd>Lspsaga code_action<CR>', opts)
-                set_keymap('n', 'gs',  '<cmd>Lspsaga hover_doc<CR>', opts)
-                set_keymap('n', 'gn',  '<cmd>Lspsaga diagnostic_jump_next<CR>', opts)
-                set_keymap('n', 'gp',  '<cmd>Lspsaga diagnostic_jump_prev<CR>', opts)
+                set_keymap('n', 'gs', '<cmd>Lspsaga hover_doc<CR>', opts)
+                set_keymap('n', 'gn', '<cmd>Lspsaga diagnostic_jump_next<CR>', opts)
+                set_keymap('n', 'gp', '<cmd>Lspsaga diagnostic_jump_prev<CR>', opts)
                 vim.api.nvim_create_augroup("lsp_diagnostics_hold", {})
                 vim.api.nvim_create_autocmd('CursorHold', {
                     group = "lsp_diagnostics_hold",
                     desc = 'Open Diagnostic with Float',
                     callback = function()
-                        vim.cmd('Lspsaga show_line_diagnostics ++unfocus')
+                        vim.diagnostic.open_float({ border = 'single', focusable = false })
                     end
                 })
             end
 
-            require('mason').setup({ui = {border = 'single'}})
+            require('mason').setup({ ui = { border = 'single' } })
             require('mason-lspconfig').setup_handlers({
                 function(server)
                     if server == 'rust_analyzer' then
@@ -846,6 +820,22 @@ require('lazy').setup({
             })
         end,
     }, {
+        -- Flutter 用 統合開発環境
+        'akinsho/flutter-tools.nvim',
+        ft = {'dart'},
+        dependencies = {
+            'nvim-lua/plenary.nvim',
+            'stevearc/dressing.nvim',
+        },
+        config = true,
+    }, {
+        -- LSP 対応外のツールを LS として使用できるようにする
+        'nvimtools/none-ls.nvim',
+        dependencies = {
+            'nvim-lua/plenary.nvim',
+        },
+        opts = {}
+    }, {
         -- LSP 対応外のツールを LS として使用できるようにする
         'jay-babu/mason-null-ls.nvim',
         event = { 'BufReadPre', 'BufNewFile' },
@@ -853,9 +843,11 @@ require('lazy').setup({
             'williamboman/mason.nvim',
             'nvimtools/none-ls.nvim',
         },
-        opts = {}
+        opts = {
+            automatic_installation = true,
+            handlers = {},
+        }
     },
-},
+    },
 lazy_opt
 )
-
