@@ -32,10 +32,6 @@ apply = ["defer"]
 github = "zsh-users/zsh-completions"
 apply = ["defer"]
 
-## Show completion entry
-[plugins.autocomplete]
-github = "marlonrichert/zsh-autocomplete"
-
 ## Back directory (bd) command
 [plugins.bd]
 github = "Tarrasch/zsh-bd"
