@@ -475,8 +475,8 @@ require('lazy').setup({
         'akinsho/toggleterm.nvim',
         keys = {
             { '<C-t>', '<CMD>ToggleTerm direction=float<CR>', mode = {'n', 'v', 'i'}, desc = 'ToggleTerm open float'},
-            { '<leader>yt', '<CMD>ToggleTerm direction=horizontal size=30<CR>', mode = {'n', 'v', 'i'}, desc = 'ToggleTerm open float'},
-            { '<leader>yy', '<CMD>ToggleTerm direction=vertical size=80<CR>', desc = 'ToggleTerm open side'},
+            { '<leader>yt', '<CMD>ToggleTerm direction=horizontal size=10<CR>', mode = {'n', 'v'}, desc = 'ToggleTerm open float'},
+            { '<leader>yy', '<CMD>ToggleTerm direction=vertical size=50<CR>', mode = {'n', 'v'}, desc = 'ToggleTerm open side'},
             {
                 '<leader>g',
                 '',
