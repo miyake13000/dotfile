@@ -24,16 +24,7 @@ fpath=($fpath $HOME/.local/share/zsh/Completions)
 # plugin manager
 ############################################
 # Plugin configlation locate ~/.config/sheldon/plugins.toml
-cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}
-sheldon_cache="$cache_dir/sheldon.zsh"
-sheldon_toml="$HOME/.config/sheldon/plugins.toml"
-if [[ ! -r "$sheldon_cache" || "$sheldon_toml" -nt "$sheldon_cache" ]]; then
-    echo -e "Caching source files... "
-    mkdir -p $cache_dir
-    sheldon source > $sheldon_cache
-    echo "done."
-fi
-source "$sheldon_cache"
+eval "$(sheldon source)"
 
 ############################################
 # starship
