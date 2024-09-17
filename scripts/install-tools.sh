@@ -22,7 +22,7 @@ if [ "$1" = "fzf" ] || [ "$1" = "all" ]; then
     fzf_version=$(curl -Ls https://github.com/junegunn/fzf/releases/latest | grep "<title>"  | awk '{
 print $2}')
     echo "Installing fzf (${fzf_version})..."
-    wget -q https://github.com/junegunn/fzf/releases/download/${fzf_version}/fzf-${fzf_version}-linux_amd64.tar.gz > /dev/null
+    wget -q https://github.com/junegunn/fzf/releases/latest/download/fzf-${fzf_version}-linux_amd64.tar.gz > /dev/null
     tar xzf fzf-${fzf_version}-linux_amd64.tar.gz > /dev/null
     mv fzf ~/.local/bin/fzf > /dev/null
     echo "done"
