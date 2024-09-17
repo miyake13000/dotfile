@@ -122,12 +122,41 @@ set_keymap('i', '<C-k>', '<Del>', opts)
 set_keymap('n', '<C-j>', ':bn<CR>', opts)
 set_keymap('n', '<C-k>', ':bp<CR>', opts)
 
-vim.keymap.set('n', '<leader>j', function()
-    vim.lsp.buf.format {
-        timeout_ms = 200,
-        async = true,
-    }
-end)
+-- LSP 用の Keybindings
+local lsp_keybindings = function(client, bufnr)
+    local function set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
+    local opts = { noremap = true, silent = true }
+    set_keymap('n', 'gd', '<cmd>Lspsaga goto_definition<CR>', opts)
+    set_keymap('n', 'gr', '<cmd>Lspsaga finder<CR>', opts)
+    set_keymap('n', 'grn', '<cmd>Lspsaga rename<CR>', opts)
+    set_keymap('n', 'gca', '<cmd>Lspsaga code_action<CR>', opts)
+    set_keymap('n', 'gs', '<cmd>Lspsaga hover_doc<CR>', opts)
+    set_keymap('n', 'gn', '<cmd>Lspsaga diagnostic_jump_next<CR>', opts)
+    set_keymap('n', 'gp', '<cmd>Lspsaga diagnostic_jump_prev<CR>', opts)
+
+    -- disable default diagnostic (virtual text)
+    vim.diagnostic.config({ virtual_text = false })
+    local diagnostic_status = 1
+    local toggle_diagnostic = function()
+        if diagnostic_status == 1 then
+            diagnostic_status = 0
+        else
+            diagnostic_status = 1
+        end
+    end
+    set_keymap('n', '<leader>l', '', {noremap = true, desc = 'Change Diagnostic View', callback = toggle_diagnostic})
+
+    vim.api.nvim_create_augroup("lsp_diagnostics_hold", {})
+    vim.api.nvim_create_autocmd('CursorHold', {
+        group = "lsp_diagnostics_hold",
+        desc = 'Open Diagnostic with Float',
+        callback = function()
+            if diagnostic_status == 1 then
+                vim.diagnostic.open_float({ border = 'single', focusable = false })
+            end
+        end
+    })
+end
 
 
 -----------------------------------------------------------
@@ -344,16 +373,8 @@ require('lazy').setup({
             vim.g.vsnip_snippet_dir = vim.fn.stdpath('data') .. '/snip'
         end
     }, {
-        -- 括弧マッチ
-        'andymass/vim-matchup',
-        lazy = false,
-        config = function()
-            -- デフォルトの matchit と matchparen を無効にする
-            vim.g.loaded_matchit = 1
-            vim.g.loaded_matchparen = 1
-            -- matchparen を 画面上部に popup で出す
-            vim.g.matchup_matchparen_offscreen = { method = 'popup' }
-        end
+        -- Vim 内で Git を使えるようにする
+        'tpope/vim-fugitive',
     },
     -----------------------------------------------------------
     -- lua plugins
@@ -437,7 +458,7 @@ require('lazy').setup({
     }, {
         -- タイムアウトするとマッピング一覧を表示する
         'folke/which-key.nvim',
-        event = 'UIEnter',
+        event = 'VeryLazy',
         config = function()
             require('which-key').setup()
             vim.o.timeout = true
@@ -501,23 +522,26 @@ require('lazy').setup({
         'karb94/neoscroll.nvim',
         event = 'UIEnter',
         config = function()
-            require('neoscroll').setup({
-                mappings = { '<C-u>', '<C-d>', '<C-b>', '<C-f>', 'zt', 'zz', 'zb' }
-            })
-            local key    = {}
-            key['<C-u>'] = { 'scroll', { '-vim.wo.scroll', 'true', '75' } }
-            key['<C-d>'] = { 'scroll', { 'vim.wo.scroll', 'true', '75' } }
-            key['<C-b>'] = { 'scroll', { '-vim.api.nvim_win_get_height(0)', 'true', '150' } }
-            key['<C-f>'] = { 'scroll', { 'vim.api.nvim_win_get_height(0)', 'true', '150' } }
-            key['zt']    = { 'zt', { '75' } }
-            key['zz']    = { 'zz', { '75' } }
-            key['zb']    = { 'zb', { '75' } }
-            require('neoscroll.config').set_mappings(key)
+            local neoscroll = require('neoscroll')
+            local keymap = {
+                ["<C-u>"] = function() neoscroll.ctrl_u({ duration = 75 }) end;
+                ["<C-d>"] = function() neoscroll.ctrl_d({ duration = 75 }) end;
+                ["<C-b>"] = function() neoscroll.ctrl_b({ duration = 150 }) end;
+                ["<C-f>"] = function() neoscroll.ctrl_f({ duration = 150 }) end;
+                ["zt"]    = function() neoscroll.zt({ half_win_duration = 75 }) end;
+                ["zz"]    = function() neoscroll.zz({ half_win_duration = 75 }) end;
+                ["zb"]    = function() neoscroll.zb({ half_win_duration = 75 }) end;
+            }
+            local modes = { 'n', 'v', 'x' }
+            for key, func in pairs(keymap) do
+              vim.keymap.set(modes, key, func)
+            end
         end
+
     }, {
         -- comment out プラグイン
         'numToStr/Comment.nvim',
-        event = 'UIEnter',
+        event = 'InsertEnter',
         opts = {},
     }, {
         -- show macro status
@@ -584,6 +608,18 @@ require('lazy').setup({
             { "<leader>o", "<cmd>NvimTreeToggle<CR>", desc = "NvimTreeToggle" },
         },
         opts = {},
+    }, {
+        -- Buffer を削除しても Window を閉じないようにする
+        'ojroques/nvim-bufdel',
+        keys = {
+            { "<leader>q", "<cmd>BufDel<CR>", desc = "Buffer Delete" },
+            { "<leader>w", "<cmd>BufDelOthers<CR>", desc = "Buffer Delete Others" },
+            { "<leader>Q", "<cmd>BufDelAll<CR>", desc = "Buffer Delete All" },
+        },
+        opts = {
+            next = 'tabs',
+            quit = false,
+        },
     },
     -----------------------------------------------------------
     -- Telescope plugin
@@ -604,7 +640,7 @@ require('lazy').setup({
     {
         -- AI 補完
         "zbirenbaum/copilot.lua",
-        event = VeryLazy,
+        event = InsertEnter,
         config = function()
             require("copilot").setup({
                 -- needed by copilot-cmp
@@ -615,14 +651,16 @@ require('lazy').setup({
     }, {
         -- copilot.lua の nvim-cmp ソース
         "zbirenbaum/copilot-cmp",
-        event = VeryLazy,
+        event = InsertEnter,
+        dependencies = {"zbirenbaum/copilot.lua"},
+        event = InsertEnter,
         config = function()
             require("copilot_cmp").setup()
         end
     }, {
         -- Completion
         'hrsh7th/nvim-cmp',
-        event = 'UIEnter',
+        event = {'InsertEnter', 'CmdlineEnter'},
         dependencies = {
             'hrsh7th/cmp-nvim-lsp',
             'hrsh7th/cmp-path',
@@ -630,7 +668,8 @@ require('lazy').setup({
             'hrsh7th/cmp-cmdline',
             'hrsh7th/cmp-vsnip',
             'hrsh7th/vim-vsnip',
-            'zbirenbaum/copilot-cmp'
+            'zbirenbaum/copilot-cmp',
+            "onsails/lspkind.nvim",
         },
         config = function()
             vim.opt.completeopt = 'menu,menuone,noselect'
@@ -644,7 +683,6 @@ require('lazy').setup({
                 return col ~= 0 and
                 vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
             end
-            local lspkind = require('lspkind')
 
             cmp.setup({
                 snippet = {
@@ -699,8 +737,7 @@ require('lazy').setup({
                 formatting = {
                     fields = { "kind", "abbr", "menu" },
                     format = function(entry, vim_item)
-                        local kind = require("lspkind").cmp_format({ mode = "symbol_text", maxwidth = 50 })(entry,
-                        vim_item)
+                        local kind = require("lspkind").cmp_format({ mode = "symbol_text", maxwidth = 50 })(entry, vim_item)
                         local strings = vim.split(kind.kind, "%s", { trimempty = true })
                         kind.kind = " " .. (strings[1] or "") .. " "
                         kind.menu = "    (" .. (strings[2] or "") .. ")"
@@ -730,13 +767,12 @@ require('lazy').setup({
     -- lsp plugins
     -----------------------------------------------------------
     {
-        -- LSP のセットアップ状況を表示する
-        'j-hui/fidget.nvim',
-        event = 'BufEnter',
-        opts = {},
-    }, {
         -- LSP のUI を改善する
         'nvimdev/lspsaga.nvim',
+        dependencies = {
+            'nvim-treesitter/nvim-treesitter',
+            'nvim-tree/nvim-web-devicons',
+        },
         event = 'LspAttach',
         opts = {
             ui = {
@@ -746,53 +782,21 @@ require('lazy').setup({
                 virtual_text = false
             }
         },
-        dependencies = {
-            'nvim-treesitter/nvim-treesitter',
-            'nvim-tree/nvim-web-devicons',
-        },
-    }, {
-        -- Diagnostic を行下に表示する
-        'ErichDonGubler/lsp_lines.nvim',
-        event = 'LspAttach',
-        opts = {},
     }, {
         -- LSP をユーザフレンドリーにセットアップする
         'williamboman/mason-lspconfig.nvim',
         lazy = false,
-        -- command = 'Mason',
         dependencies = {
             'williamboman/mason.nvim',
             'neovim/nvim-lspconfig',
             'simrat39/rust-tools.nvim',
             "onsails/lspkind.nvim",
+            'j-hui/fidget.nvim',
         },
         config = function()
-            -- disable default diagnostic (virtual text)
-            vim.diagnostic.config({ virtual_lines = false, virtual_text = false })
+            capabilities = require('cmp_nvim_lsp').default_capabilities()
 
-            local capabilities = require('cmp_nvim_lsp').default_capabilities()
-            local on_attach = function(client, bufnr)
-                -- set keymap for lsp
-                local function set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
-                local opts = { noremap = true, silent = true }
-                set_keymap('n', 'gj', '<cmd>Lspsaga goto_definition<CR>', opts)
-                set_keymap('n', 'gd', '<cmd>Lspsaga peek_definition<CR>', opts)
-                set_keymap('n', 'gr', '<cmd>Lspsaga finder<CR>', opts)
-                set_keymap('n', 'grn', '<cmd>Lspsaga rename<CR>', opts)
-                set_keymap('n', 'gca', '<cmd>Lspsaga code_action<CR>', opts)
-                set_keymap('n', 'gs', '<cmd>Lspsaga hover_doc<CR>', opts)
-                set_keymap('n', 'gn', '<cmd>Lspsaga diagnostic_jump_next<CR>', opts)
-                set_keymap('n', 'gp', '<cmd>Lspsaga diagnostic_jump_prev<CR>', opts)
-                vim.api.nvim_create_augroup("lsp_diagnostics_hold", {})
-                vim.api.nvim_create_autocmd('CursorHold', {
-                    group = "lsp_diagnostics_hold",
-                    desc = 'Open Diagnostic with Float',
-                    callback = function()
-                        vim.diagnostic.open_float({ border = 'single', focusable = false })
-                    end
-                })
-            end
-
+            -- set keymap for lsp
             require('mason').setup({ ui = { border = 'single' } })
             require('mason-lspconfig').setup_handlers({
                 function(server)
@@ -800,7 +804,7 @@ require('lazy').setup({
                         require('rust-tools').setup({
                             server = {
                                 capabilities = capabilities,
-                                on_attach = on_attach,
+                                on_attach = lsp_keybindings,
                                 settings = {
                                     ['rust-analyzer'] = {
                                         checkOnSave = {
@@ -812,7 +816,7 @@ require('lazy').setup({
                         })
                     else
                         require('lspconfig')[server].setup {
-                            on_attach = on_attach,
+                            on_attach = lsp_keybindings,
                             capabilities = capabilities,
                         }
                     end
@@ -821,13 +825,18 @@ require('lazy').setup({
         end,
     }, {
         -- Flutter 用 統合開発環境
-        'akinsho/flutter-tools.nvim',
+        'nvim-flutter/flutter-tools.nvim',
         ft = {'dart'},
         dependencies = {
             'nvim-lua/plenary.nvim',
             'stevearc/dressing.nvim',
         },
-        config = true,
+        opts = {
+            lsp = {
+                capabilities = capabilities,
+                on_attach = lsp_keybindings,
+            }
+        },
     }, {
         -- LSP 対応外のツールを LS として使用できるようにする
         'nvimtools/none-ls.nvim',
