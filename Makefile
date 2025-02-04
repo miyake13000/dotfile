@@ -12,11 +12,12 @@ usage:
 	@echo "Execute 'make setup' to update / 'make update' to update"
 	@echo "--------------------------------------------------------"
 	@echo "Or you can setup/update each tools individually"
-	@echo "  zsh    (make setup-zsh  / update-zsh)"
-	@echo "  nvim   (make setup-nvim / update-nvim)"
-	@echo "  tmux   (make setup-tmux / no need to update)"
-	@echo "  anyenv (make setup-lang / update-lang)"
-	@echo "  git    (make setup-git  / update-git)"
+	@echo "  zsh       (make setup-zsh       / update-zsh)"
+	@echo "  nvim      (make setup-nvim      / update-nvim)"
+	@echo "  tmux      (make setup-tmux      / no need to update)"
+	@echo "  anyenv    (make setup-lang      / update-lang)"
+	@echo "  git       (make setup-git       / update-git)"
+	@echo "  alacritty (make setup-alacritty / update-alacritty)"
 	@echo
 
 check-command:
@@ -28,7 +29,7 @@ check-command:
 	@which tmux   > /dev/null || (echo "Install tmux"   ; exit 1)
 	@[ -e $(BINSTALL_PATH) ] > /dev/null || $(BINSTALL_INSTALL)
 
-setup: setup-zsh setup-nvim setup-tmux setup-git setup-lang
+setup: setup-zsh setup-nvim setup-tmux setup-git setup-lang setup-alacritty
 
 setup-zsh: check-command
 	mkdir -p ~/.config
@@ -68,6 +69,10 @@ ifeq ("$(wildcard ~/.anyenv/plugins)", "")
 endif
 	ln -sf ~/.anyenv/bin/anyenv ~/.local/bin/anyenv
 	~/.anyenv/bin/anyenv install --force-init
+
+setup-alacritty: check-command
+	mkdir -p ~/.config/alacritty
+	ln -sf $(CWD)/alacritty/alacritty.toml ~/.config/alacritty/alacritty.toml
 
 setup-git: check-command
 	cat $(CWD)/git/gitconfig >> ~/.gitconfig

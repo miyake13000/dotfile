@@ -12,9 +12,6 @@ if [ $SHLVL = 1 ]; then
 
     # anyenv setup
     eval "$(anyenv init -)"
-
-    # Disable clippy link
-    export CLIPPY_DISABLE_DOCS_LINKS=true
 fi
 
 # Additional machine specific completions
@@ -69,6 +66,12 @@ alias mkcd=mkcd
 function mkcd(){
     mkdir $1;
     cd $1;
+}
+function swap() {
+    local TMPFILE=tmp.$$
+    mv "$1" $TMPFILE
+    mv "$2" "$1"
+    mv $TMPFILE "$2"
 }
 
 ############################################

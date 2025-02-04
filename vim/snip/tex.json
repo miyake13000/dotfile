@@ -91,5 +91,13 @@
       "\\item $1"
     ],
     "description": "item"
+  },
+
+  "verb": {
+    "prefix": ["ve"],
+    "body": [
+      "\\verb|$1|"
+    ],
+    "description": "Insert single line verbatim"
   }
 }

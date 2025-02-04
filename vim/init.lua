@@ -4,16 +4,6 @@ vim.opt.encoding = 'utf8'
 vim.scriptencoding = 'utf8'
 
 -----------------------------------------------------------
--- Machine detection
------------------------------------------------------------
-if vim.fn.system({ 'sh', '-c', 'uname -r | grep -c microsoft' }) == 1 then
-    local is_wsl = true
-else
-    local is_wsl = false
-end
-
-
------------------------------------------------------------
 -- common options
 -----------------------------------------------------------
 vim.opt.termguicolors = true
@@ -83,6 +73,8 @@ vim.opt.updatetime = 300
 -- 矩形選択で行末以上に移動できる
 vim.opt.virtualedit:append("block")
 
+-- Tex の filetype を設定
+vim.g.tex_flavor = 'latex'
 
 -----------------------------------------------------------
 -- non plugin keybindings
@@ -121,18 +113,26 @@ set_keymap('i', '<C-k>', '<Del>', opts)
 -- buffer の切替
 set_keymap('n', '<C-j>', ':bn<CR>', opts)
 set_keymap('n', '<C-k>', ':bp<CR>', opts)
+-- window の切替
+set_keymap('n', '<C-h>', '<C-w>W', opts)
+set_keymap('n', '<C-l>', '<C-w>w', opts)
+-- Windows を開く
+set_keymap('n', '<leader>s', ':split<CR>', opts)
+set_keymap('n', '<leader>v', ':vsplit<CR>', opts)
+-- Windows を閉じる
+set_keymap('n', '<leader>q', '<C-w>q', opts)
 
 -- LSP 用の Keybindings
 local lsp_keybindings = function(client, bufnr)
-    local function set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
-    local opts = { noremap = true, silent = true }
-    set_keymap('n', 'gd', '<cmd>Lspsaga goto_definition<CR>', opts)
-    set_keymap('n', 'gr', '<cmd>Lspsaga finder<CR>', opts)
-    set_keymap('n', 'grn', '<cmd>Lspsaga rename<CR>', opts)
-    set_keymap('n', 'gca', '<cmd>Lspsaga code_action<CR>', opts)
-    set_keymap('n', 'gs', '<cmd>Lspsaga hover_doc<CR>', opts)
-    set_keymap('n', 'gn', '<cmd>Lspsaga diagnostic_jump_next<CR>', opts)
-    set_keymap('n', 'gp', '<cmd>Lspsaga diagnostic_jump_prev<CR>', opts)
+    local opts_lsp = { noremap = true, silent = true }
+    vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gd', '<cmd>Lspsaga goto_definition<CR>', opts_lsp)
+    vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gr', '<cmd>Lspsaga finder<CR>', opts_lsp)
+    vim.api.nvim_buf_set_keymap(bufnr, 'n', 'grn', '<cmd>Lspsaga rename<CR>', opts_lsp)
+    vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gca', '<cmd>Lspsaga code_action<CR>', opts_lsp)
+    vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gs', '<cmd>Lspsaga hover_doc<CR>', opts_lsp)
+    vim.api.nvim_buf_set_keymap(bufnr, 'n', 'g]', '<cmd>Lspsaga diagnostic_jump_next<CR>', opts_lsp)
+    vim.api.nvim_buf_set_keymap(bufnr, 'n', 'g[', '<cmd>Lspsaga diagnostic_jump_prev<CR>', opts_lsp)
+    vim.api.nvim_buf_set_keymap(bufnr, 'v', '=',  '', { noremap = true, silent = true, desc = 'Format', callback = vim.lsp.buf.format})
 
     -- disable default diagnostic (virtual text)
     vim.diagnostic.config({ virtual_text = false })
@@ -144,7 +144,12 @@ local lsp_keybindings = function(client, bufnr)
             diagnostic_status = 1
         end
     end
-    set_keymap('n', '<leader>l', '', {noremap = true, desc = 'Change Diagnostic View', callback = toggle_diagnostic})
+    vim.api.nvim_set_keymap(
+        'n',
+        '<leader>l',
+        '',
+        {noremap = true, silent = true, desc = 'Change Diagnostic View', callback = toggle_diagnostic}
+    )
 
     vim.api.nvim_create_augroup("lsp_diagnostics_hold", {})
     vim.api.nvim_create_autocmd('CursorHold', {
@@ -218,7 +223,6 @@ local lazy_opt = {
     checker = { enabled = true },
 }
 
-
 require('lazy').setup({
     -----------------------------------------------------------
     -- colorscheme
@@ -237,6 +241,7 @@ require('lazy').setup({
             })
             vim.cmd("colorscheme onedark_dark")
             vim.api.nvim_set_hl(0, "@punctuation.special.latex", { link = 'Special' })
+
             -- Darkmode と Lightmode を入れ替える
             local is_dark = true
             vim.api.nvim_create_user_command(
@@ -256,8 +261,9 @@ require('lazy').setup({
     }, {
         -- light mode 用 colorscheme
         "folke/tokyonight.nvim",
-        event = VeryLazy,
+        event = 'BufEnter',
         priority = 1000,
+        cmd = { 'ColorSchemeToggle' },
         opts = {},
     },
     -----------------------------------------------------------
@@ -298,21 +304,14 @@ require('lazy').setup({
     -- non lua plugins
     -----------------------------------------------------------
     {
-        -- textwidth にあわせて線を引く
-        'miyake13000/wrap-guide',
-        command = {'WrapGuideEnable', 'WrapGuideToggle'},
-    }, {
-        -- quickfix-windows の見た目を改善
-        'kevinhwang91/nvim-bqf',
-        event = 'QuickFixCmdPre',
-    }, {
-        -- 囲まれている単語を調整
+        -- 囲い文字をテキストオブジェクトとして扱う
         'machakann/vim-sandwich',
-        event = 'InsertEnter',
+        event = 'VeryLazy',
     }, {
         -- Rust フォーマッタ
         'rust-lang/rust.vim',
         ft = 'rust',
+        event = 'VeryLazy',
         config = function()
             -- Rust ファイルを保存時，自動で rustfmt にかける
             vim.g.rustfmt_autosave = 1
@@ -320,25 +319,17 @@ require('lazy').setup({
     }, {
         -- 自動でインデント幅を設定する
         'timakro/vim-yadi',
-        event = 'BufEnter',
+        event = 'VeryLazy',
         config = function()
             vim.cmd('DetectIndent')
         end
     }, {
         -- Whitespace を強調
         'ntpeters/vim-better-whitespace',
-        event = 'BufEnter',
+        event = 'VeryLazy',
         config = function()
             vim.g.better_whitespace_filetypes_blacklist = {
-                'toggleterm',
-                'diff',
-                'git',
-                'gitcommit',
-                'unite',
-                'qf',
-                'help',
-                'markdown',
-                'fugitive'
+                'toggleterm', 'diff', 'qf', 'help',
             }
             vim.api.nvim_set_hl(0, 'ExtraWhitespace', { bg = '#CF572D' })
         end
@@ -346,14 +337,10 @@ require('lazy').setup({
         -- latex 用エコシステム
         'lervag/vimtex',
         ft = 'tex',
+        event = 'VeryLazy',
         config = function()
             -- tex ファイルコンパイル時に pdf を開くビューワー
-            if is_wsl then
-                vim.g.vimtex_view_general_viewer = 'sumatrapdf'
-                vim.g.vimtex_view_general_options = '-reuse-instance @pdf'
-            else
-                vim.g.vimtex_view_method = 'zathura'
-            end
+            vim.g.vimtex_view_method = 'zathura'
             -- tex ファイルをコンパイルするコマンド
             vim.g.vimtex_compiler_method = 'generic'
             vim.g.vimtex_compiler_generic = { command = 'make all' }
@@ -372,9 +359,6 @@ require('lazy').setup({
             -- スニペットの保存先
             vim.g.vsnip_snippet_dir = vim.fn.stdpath('data') .. '/snip'
         end
-    }, {
-        -- Vim 内で Git を使えるようにする
-        'tpope/vim-fugitive',
     },
     -----------------------------------------------------------
     -- lua plugins
@@ -406,9 +390,11 @@ require('lazy').setup({
     }, {
         -- インデントの可視化
         'lukas-reineke/indent-blankline.nvim',
-        event = 'BufEnter',
-        main = 'ibl',
-        opts = { scope = { enabled = false } },
+        event = { 'BufReadPre', 'BufNewFile' },
+        config = function()
+            vim.api.nvim_set_hl(0, 'IblScope', { fg = '#f0f0f0' })
+            require('ibl').setup({scope = { char = '▏' }})
+        end,
     }, {
         -- Insert mode から抜けると IME を無効にする
         'keaising/im-select.nvim',
@@ -437,7 +423,8 @@ require('lazy').setup({
     }, {
         -- markdown のプレビューを表示する
         'iamcco/markdown-preview.nvim',
-        cmd = { 'MarkdownPreviewToggle', 'MarkdownPreview', 'MarkdownPreviewStop' },
+        cmd = { 'MarkdownPreview' },
+        ft = 'markdown',
         build = "cd app && yarn install",
         init = function()
             vim.g.mkdp_filetypes = { "markdown" }
@@ -445,14 +432,14 @@ require('lazy').setup({
     }, {
         -- カラーコードに色をつける
         'norcalli/nvim-colorizer.lua',
-        lazy = false,
+        event = { 'BufReadPre', 'BufNewFile' },
         config = function()
             require('colorizer').setup()
         end
     }, {
         -- TODO などを目立たせる
         'folke/todo-comments.nvim',
-        event = 'UIEnter',
+        event = { 'BufReadPre', 'BufNewFile' },
         dependencies = { 'nvim-lua/plenary.nvim' },
         opts = {},
     }, {
@@ -467,7 +454,7 @@ require('lazy').setup({
     }, {
         -- Git の状態を表示
         'lewis6991/gitsigns.nvim',
-        event = 'BufEnter',
+        event = 'VeryLazy',
         opts = {
             signcolumn = false,
             numhl = true,
@@ -483,7 +470,7 @@ require('lazy').setup({
     }, {
         -- コードをハイライトする
         'nvim-treesitter/nvim-treesitter',
-        event = 'BufEnter',
+        event = 'VimEnter',
         build = ':TSUpdate',
         config = function()
             require('nvim-treesitter.configs').setup({
@@ -495,17 +482,18 @@ require('lazy').setup({
         -- terminal の見た目をよくする
         'akinsho/toggleterm.nvim',
         keys = {
-            { '<C-t>', '<CMD>ToggleTerm direction=float<CR>', mode = {'n', 'v', 'i'}, desc = 'ToggleTerm open float'},
-            { '<leader>yt', '<CMD>ToggleTerm direction=horizontal size=10<CR>', mode = {'n', 'v'}, desc = 'ToggleTerm open float'},
-            { '<leader>yy', '<CMD>ToggleTerm direction=vertical size=50<CR>', mode = {'n', 'v'}, desc = 'ToggleTerm open side'},
-            {
-                '<leader>g',
-                '',
-                desc = 'Open Lazygit',
-                callback = function()
-                    require('toggleterm.terminal').Terminal:new({ cmd = 'lazygit', direction = 'float' }):toggle()
-                end
-            }
+            { '<C-t>',
+              '<CMD>ToggleTerm direction=float<CR>',
+              mode = {'n', 'v', 'i'},
+              desc = 'ToggleTerm open float' },
+            { '<leader>yt',
+              '<CMD>ToggleTerm direction=horizontal size=10<CR>',
+              mode = {'n', 'v'},
+              desc = 'ToggleTerm open float' },
+            { '<leader>yy',
+              '<CMD>ToggleTerm direction=vertical size=50<CR>',
+              mode = {'n', 'v'},
+              desc = 'ToggleTerm open side' },
         },
         config = function()
             require('toggleterm').setup()
@@ -520,7 +508,7 @@ require('lazy').setup({
     }, {
         -- スクロールをスムーズにする
         'karb94/neoscroll.nvim',
-        event = 'UIEnter',
+        event = 'VeryLazy',
         config = function()
             local neoscroll = require('neoscroll')
             local keymap = {
@@ -541,17 +529,18 @@ require('lazy').setup({
     }, {
         -- comment out プラグイン
         'numToStr/Comment.nvim',
-        event = 'InsertEnter',
+        event = 'VeryLazy',
         opts = {},
     }, {
         -- show macro status
         "chrisgrieser/nvim-recorder",
+        event = 'VeryLazy',
         dependencies = "rcarriga/nvim-notify",
         opts = {},
     }, {
         -- vim.ui.select を改善
         'stevearc/dressing.nvim',
-        event = 'UIEnter',
+        event = 'VeryLazy',
         opts = {},
     }, {
         -- funny plugins
@@ -560,7 +549,7 @@ require('lazy').setup({
     }, {
         -- f を高機能にする
         'smoka7/hop.nvim',
-        event = 'UIEnter',
+        event = 'VeryLazy',
         config = function()
             local hop = require('hop')
             local directions = require('hop.hint').HintDirection
@@ -581,12 +570,13 @@ require('lazy').setup({
     }, {
         -- buffer line プラグイン
         'akinsho/bufferline.nvim',
+        event = 'VimEnter',
         dependencies = { 'nvim-tree/nvim-web-devicons' },
         opts = {
             options = { separator_style = 'padded_slant' }
         },
     }, {
-        -- 行番号をインクリメンタルに表示する
+        -- 行番号を打つと peek する
         'nacro90/numb.nvim',
         event = 'VeryLazy',
         opts = {},
@@ -609,17 +599,80 @@ require('lazy').setup({
         },
         opts = {},
     }, {
+        -- Markdown へのイメージ貼り付け
+        "HakonHarnes/img-clip.nvim",
+        event = "VeryLazy",
+        opts = {
+            default = {
+                embed_image_as_base64 = false,
+                prompt_for_file_name = false,
+                drag_and_drop = {
+                    insert_mode = true,
+                },
+            },
+        },
+    }, {
+        -- Markdown ファイルの見た目を豪華に
+        'MeanderingProgrammer/render-markdown.nvim',
+        event = { 'BufReadPre', 'BufNewFile' },
+        opts = {
+            file_types = { "markdown", "Avante" },
+        },
+        ft = { "markdown", "Avante" },
+    }, {
+        "kdheepak/lazygit.nvim",
+        dependencies = {
+            "nvim-lua/plenary.nvim",
+        },
+        keys = {
+            { "<leader>g", "<cmd>LazyGit<cr>", desc = "LazyGit" }
+        },
+    }, {
         -- Buffer を削除しても Window を閉じないようにする
         'ojroques/nvim-bufdel',
         keys = {
-            { "<leader>q", "<cmd>BufDel<CR>", desc = "Buffer Delete" },
-            { "<leader>w", "<cmd>BufDelOthers<CR>", desc = "Buffer Delete Others" },
-            { "<leader>Q", "<cmd>BufDelAll<CR>", desc = "Buffer Delete All" },
+            { "<leader>w", "<cmd>BufDel<CR>", desc = "Buffer Delete" },
         },
         opts = {
             next = 'tabs',
             quit = false,
         },
+    },
+    -----------------------------------------------------------
+    -- AI Boost
+    -----------------------------------------------------------
+    {
+        -- AI 補完
+        "zbirenbaum/copilot.lua",
+        event = 'InsertEnter',
+        config = function()
+            require("copilot").setup({
+                -- needed by copilot-cmp
+                suggestion = { enabled = false },
+                panel = { enabled = false },
+            })
+        end,
+    }, {
+        "yetone/avante.nvim",
+        dependencies = {
+            "stevearc/dressing.nvim",
+            "nvim-lua/plenary.nvim",
+            "MunifTanjim/nui.nvim",
+            "ibhagwan/fzf-lua", -- for file_selector provider fzf
+            "zbirenbaum/copilot.lua", -- for providers='copilot'
+            {
+                -- Make sure to set this up properly if you have lazy=true
+                'MeanderingProgrammer/render-markdown.nvim',
+                opts = {
+                    file_types = { "markdown", "Avante" },
+                },
+                ft = { "markdown", "Avante" },
+            },
+        },
+        event = 'VeryLazy',
+        version = false,
+        opts = {},
+        build = "make",
     },
     -----------------------------------------------------------
     -- Telescope plugin
@@ -638,22 +691,10 @@ require('lazy').setup({
     -- completion plugins
     -----------------------------------------------------------
     {
-        -- AI 補完
-        "zbirenbaum/copilot.lua",
-        event = InsertEnter,
-        config = function()
-            require("copilot").setup({
-                -- needed by copilot-cmp
-                suggestion = { enabled = false },
-                panel = { enabled = false },
-            })
-        end,
-    }, {
         -- copilot.lua の nvim-cmp ソース
         "zbirenbaum/copilot-cmp",
-        event = InsertEnter,
+        event = 'InsertEnter',
         dependencies = {"zbirenbaum/copilot.lua"},
-        event = InsertEnter,
         config = function()
             require("copilot_cmp").setup()
         end
@@ -667,6 +708,7 @@ require('lazy').setup({
             'hrsh7th/cmp-buffer',
             'hrsh7th/cmp-cmdline',
             'hrsh7th/cmp-vsnip',
+            'hrsh7th/cmp-calc',
             'hrsh7th/vim-vsnip',
             'zbirenbaum/copilot-cmp',
             "onsails/lspkind.nvim",
@@ -726,6 +768,11 @@ require('lazy').setup({
                         s = cmp.mapping.confirm({ select = true }),
                         c = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = false }),
                     }),
+                    ["<S-CR>"] = cmp.mapping({
+                        i = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = true }),
+                        s = cmp.mapping.confirm({ select = true }),
+                        c = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = true }),
+                    }),
                 }),
                 sources = cmp.config.sources({
                     { name = 'nvim_lsp' },
@@ -733,6 +780,7 @@ require('lazy').setup({
                     { name = 'path' },
                     { name = 'buffer',  keyword_length = 3 },
                     { name = 'copilot' },
+                    { name = 'calc' },
                 }),
                 formatting = {
                     fields = { "kind", "abbr", "menu" },
@@ -785,7 +833,7 @@ require('lazy').setup({
     }, {
         -- LSP をユーザフレンドリーにセットアップする
         'williamboman/mason-lspconfig.nvim',
-        lazy = false,
+        event = { 'BufReadPre', 'BufNewFile' },
         dependencies = {
             'williamboman/mason.nvim',
             'neovim/nvim-lspconfig',
@@ -826,6 +874,7 @@ require('lazy').setup({
     }, {
         -- Flutter 用 統合開発環境
         'nvim-flutter/flutter-tools.nvim',
+        event = {'BufReadPre', 'BufNewFile'},
         ft = {'dart'},
         dependencies = {
             'nvim-lua/plenary.nvim',
@@ -837,25 +886,6 @@ require('lazy').setup({
                 on_attach = lsp_keybindings,
             }
         },
-    }, {
-        -- LSP 対応外のツールを LS として使用できるようにする
-        'nvimtools/none-ls.nvim',
-        dependencies = {
-            'nvim-lua/plenary.nvim',
-        },
-        opts = {}
-    }, {
-        -- LSP 対応外のツールを LS として使用できるようにする
-        'jay-babu/mason-null-ls.nvim',
-        event = { 'BufReadPre', 'BufNewFile' },
-        dependencies = {
-            'williamboman/mason.nvim',
-            'nvimtools/none-ls.nvim',
-        },
-        opts = {
-            automatic_installation = true,
-            handlers = {},
-        }
     },
     },
 lazy_opt

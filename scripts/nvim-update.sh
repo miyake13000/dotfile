@@ -60,6 +60,11 @@ function main() {
         exit 1
     fi
 
+    if ! update_plugins; then
+        echo "failed to update plugins"
+        exit 1
+    fi
+
     rm -rf "$(dirname $source)"
 }
 
@@ -67,7 +72,7 @@ function download_nvim() {
     tag=$1
     path="$2"
     echo -n "Downloading nvim-$tag..."
-    curl -s -L "https://github.com/neovim/neovim/releases/download/$tag/nvim.appimage" > "$path"
+    curl -s -L "https://github.com/neovim/neovim/releases/download/$tag/nvim-$(uname -s)-$(uname -p).appimage" > "$path"
     chmod +x "$path" > /dev/null
     echo "done."
     echo
@@ -107,6 +112,13 @@ function install_nvim() {
     echo -n "Installing nvim..."
     mv "$src" "$dest"
     ln -fs "$filename" "$link"
+    echo "done."
+    echo
+}
+
+function update_plugins() {
+    echo -n "Updating plugins..."
+    nvim --headless "+Lazy! sync" +qa
     echo "done."
     echo
 }

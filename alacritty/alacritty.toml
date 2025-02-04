@@ -1,0 +1,113 @@
+# ====================== GENERAL ======================
+## Colorscheme
+import = ["~/.local/share/alacritty/alacritty-theme/themes/gnome_terminal.toml"]
+
+## 設定変更時にホットリロードする
+live_config_reload = true
+
+# ====================== ENV ======================
+[env]
+ALACRITTY = "true"
+
+# ====================== WINDOW ======================
+[window]
+## 行列数
+dimensions = { columns = 0, lines = 0 }
+
+## ウィンドウ周りのパディング
+padding = { x = 0, y = 0 }
+
+## ウィンドウの周りの装飾
+decorations = "Full"
+
+## 透過率
+opacity = 1.0
+
+## 起動時のウィンドウの状態
+startup_mode = "Maximized"
+
+## プログラム実行時にウィンドウタイトルを変更
+dynamic_title = true
+
+# ====================== SCROLING ======================
+[scrolling]
+## スクロールの最大数
+history = 10000
+
+# ====================== FONT ======================
+[font]
+
+## 通常フォント
+normal = { family = "HackGen Console NF", style = "Regular" }
+
+## 太字フォント
+bold = { family = "HackGen Console NF", style = "Bold" }
+
+## フォントサイズ
+size = 13
+
+## 各文字間のパディング
+offset = { x = 0, y = 0 }
+
+# ====================== COLORS ======================
+[colors]
+
+[colors.primary]
+foreground = "#f0f0f0"
+background = "#101010"
+
+# ====================== BELL ======================
+[bell]
+
+
+# ====================== SELECTION ======================
+[selection]
+
+# ====================== CURSOR ======================
+[cursor]
+## マウスカーソルの形
+style = { shape = "Block", blinking = "Off" }
+
+## ウィンドウが非アクティブの時，カーソルを穴抜きにする
+unfocused_hollow = true
+
+## セルの幅に対するカーソルの太さ
+thickness = 0.15
+
+# ====================== TERMINAL ======================
+[terminal]
+
+# ====================== MOUSE ======================
+[mouse]
+## タイピング中はマウスカーソルを非表示
+hide_when_typing = true
+
+## マウスのバインディング
+bindings = [
+    # { mouse = "Right", mods = "Control", action = "Paste" },
+]
+
+# ====================== HINTS ======================
+[[hints.enabled]]
+command = "xdg-open"
+hyperlinks = true
+post_processing = true
+persist = false
+mouse = { enabled = true, mods = "Control"  }
+binding = { key = "O", mods = "Control|Shift" }
+regex = "(ipfs:|ipns:|magnet:|mailto:|gemini://|gopher://|https://|http://|news:|file:|git://|ssh:|ftp://)[^\u0000-\u001F\u007F-\u009F<>\"\\s{-}\\^⟨⟩`]+"
+
+# ====================== KEYBOARD ======================
+[keyboard]
+bindings = [
+    { key = "v",      mods = "Control|Shift", action = "Paste" },
+    { key = "c",      mods = "Control|Shift", action = "Copy" },
+    { key = "^",      mods = "Control",       action = "IncreaseFontSize" },
+    { key = "-",      mods = "Control",       action = "DecreaseFontSize" },
+    { key = "0",      mods = "Control",       action = "ResetFontSize" },
+    { key = "Return", mods = "Shift",         chars = "\u001B[13;2u" },
+    { key = "Return", mods = "Control",       chars = "\u001B[13;5u" },
+    { key = "Tab",    mods = "Control",       chars = "\u001B[9;5u" },
+    { key = "Tab",    mods = "Control|Shift", chars = "\u001B[9;6u" },
+]
+
