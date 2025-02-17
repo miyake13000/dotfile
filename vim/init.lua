@@ -834,6 +834,7 @@ require('lazy').setup({
         -- LSP をユーザフレンドリーにセットアップする
         'williamboman/mason-lspconfig.nvim',
         event = { 'BufReadPre', 'BufNewFile' },
+        cmd = {'Mason'},
         dependencies = {
             'williamboman/mason.nvim',
             'neovim/nvim-lspconfig',
