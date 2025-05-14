@@ -102,7 +102,7 @@ regex = "(ipfs:|ipns:|magnet:|mailto:|gemini://|gopher://|https://|http://|news:
 bindings = [
     { key = "v",      mods = "Control|Shift", action = "Paste" },
     { key = "c",      mods = "Control|Shift", action = "Copy" },
-    { key = "^",      mods = "Control",       action = "IncreaseFontSize" },
+    { key = ";",      mods = "Control",       action = "IncreaseFontSize" },
     { key = "-",      mods = "Control",       action = "DecreaseFontSize" },
     { key = "0",      mods = "Control",       action = "ResetFontSize" },
     { key = "Return", mods = "Shift",         chars = "\u001B[13;2u" },
