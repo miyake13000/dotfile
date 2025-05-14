@@ -62,6 +62,7 @@ alias color='for c in {000..255}; do echo -n "\e[38;5;${c}m $c" ; [ $(($c%16)) -
 alias clear='clear -x'
 alias size='du -sh'
 alias ps='ps auxf'
+alias less='bat'
 alias mkcd=mkcd
 function mkcd(){
     mkdir $1;
