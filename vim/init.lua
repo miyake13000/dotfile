@@ -132,7 +132,6 @@ local lsp_keybindings = function(client, bufnr)
     vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gs', '<cmd>Lspsaga hover_doc<CR>', opts_lsp)
     vim.api.nvim_buf_set_keymap(bufnr, 'n', 'g]', '<cmd>Lspsaga diagnostic_jump_next<CR>', opts_lsp)
     vim.api.nvim_buf_set_keymap(bufnr, 'n', 'g[', '<cmd>Lspsaga diagnostic_jump_prev<CR>', opts_lsp)
-    vim.api.nvim_buf_set_keymap(bufnr, 'v', '=',  '', { noremap = true, silent = true, desc = 'Format', callback = vim.lsp.buf.format})
 
     -- disable default diagnostic (virtual text)
     vim.diagnostic.config({ virtual_text = false })
@@ -220,7 +219,10 @@ vim.opt.rtp:prepend(lazypath)
 -----------------------------------------------------------
 local lazy_opt = {
     ui = { border = 'single' },
-    checker = { enabled = true },
+    checker = {
+        enabled = true,
+        notify = false,
+    },
 }
 
 require('lazy').setup({
@@ -272,7 +274,7 @@ require('lazy').setup({
     {
         -- lua 製 status line
         'nvim-lualine/lualine.nvim',
-        event = 'VimEnter',
+        lazy = false,
         dependencies = {
             'nvim-tree/nvim-web-devicons'
         },
@@ -366,7 +368,8 @@ require('lazy').setup({
     {
         -- status line を非表示にして，通知形式でメッセージを表示する
         'folke/noice.nvim',
-        event = 'VeryLazy',
+        -- event = 'VimEnter',
+        lazy = false,
         dependencies = {
             'MunifTanjim/nui.nvim',
             'rcarriga/nvim-notify',
@@ -470,7 +473,8 @@ require('lazy').setup({
     }, {
         -- コードをハイライトする
         'nvim-treesitter/nvim-treesitter',
-        event = 'VimEnter',
+        -- event = 'VimEnter',
+        lazy = false,
         build = ':TSUpdate',
         config = function()
             require('nvim-treesitter.configs').setup({
@@ -628,6 +632,13 @@ require('lazy').setup({
             { "<leader>g", "<cmd>LazyGit<cr>", desc = "LazyGit" }
         },
     }, {
+        "vinnymeller/swagger-preview.nvim",
+        event = "VeryLazy",
+        file_types = { "yaml" },
+        cmd = { "SwaggerPreview", "SwaggerPreviewStop", "SwaggerPreviewToggle" },
+        build = "npm i",
+        opts = {},
+    }, {
         -- Buffer を削除しても Window を閉じないようにする
         'ojroques/nvim-bufdel',
         keys = {
@@ -781,6 +792,7 @@ require('lazy').setup({
                     { name = 'buffer',  keyword_length = 3 },
                     { name = 'copilot' },
                     { name = 'calc' },
+                    { name = "lazydev", group_index = 0 },
                 }),
                 formatting = {
                     fields = { "kind", "abbr", "menu" },
@@ -812,7 +824,7 @@ require('lazy').setup({
         end
     },
     -----------------------------------------------------------
-    -- lsp plugins
+    -- LSP Plugins
     -----------------------------------------------------------
     {
         -- LSP のUI を改善する
@@ -831,47 +843,35 @@ require('lazy').setup({
             }
         },
     }, {
-        -- LSP をユーザフレンドリーにセットアップする
-        'williamboman/mason-lspconfig.nvim',
-        event = { 'BufReadPre', 'BufNewFile' },
-        cmd = {'Mason'},
-        dependencies = {
-            'williamboman/mason.nvim',
-            'neovim/nvim-lspconfig',
-            'simrat39/rust-tools.nvim',
-            "onsails/lspkind.nvim",
-            'j-hui/fidget.nvim',
+        -- LSP 用のデータセット
+        'neovim/nvim-lspconfig',
+        lazy = false,
+    }, {
+        -- LSP のセットアップ状態を表示する
+        'j-hui/fidget.nvim',
+        lazy = false,
+        opts = {},
+    }, {
+        -- LSP ツールのパスを通す
+        'mason-org/mason.nvim',
+        lazy = false,
+        opts = { ui = { border = 'single' } }
+    }, {
+        -- LSP をインストール&セットアップする
+        'mason-org/mason-lspconfig.nvim',
+        lazy = false,
+        opts = {
+            automatic_enable = {
+                exclude = {
+                    "rust_analyzer",
+                }
+            },
         },
-        config = function()
-            capabilities = require('cmp_nvim_lsp').default_capabilities()
-
-            -- set keymap for lsp
-            require('mason').setup({ ui = { border = 'single' } })
-            require('mason-lspconfig').setup_handlers({
-                function(server)
-                    if server == 'rust_analyzer' then
-                        require('rust-tools').setup({
-                            server = {
-                                capabilities = capabilities,
-                                on_attach = lsp_keybindings,
-                                settings = {
-                                    ['rust-analyzer'] = {
-                                        checkOnSave = {
-                                            command = 'clippy'
-                                        },
-                                    }
-                                },
-                            },
-                        })
-                    else
-                        require('lspconfig')[server].setup {
-                            on_attach = lsp_keybindings,
-                            capabilities = capabilities,
-                        }
-                    end
-                end
-            })
-        end,
+    }, {
+        -- Rust 特化 LSP 設定
+        'mrcjkb/rustaceanvim',
+        ft = {'rust'},
+        lazy = false,
     }, {
         -- Flutter 用 統合開発環境
         'nvim-flutter/flutter-tools.nvim',
@@ -881,13 +881,25 @@ require('lazy').setup({
             'nvim-lua/plenary.nvim',
             'stevearc/dressing.nvim',
         },
+        opts = {},
+    }, {
+        "folke/lazydev.nvim",
+        ft = "lua",
         opts = {
-            lsp = {
-                capabilities = capabilities,
-                on_attach = lsp_keybindings,
-            }
+          library = {
+            { path = "${3rd}/luv/library", words = { "vim%.uv" } },
+          },
         },
     },
     },
 lazy_opt
 )
+
+
+-----------------------------------------------------------
+-- LSP Settings
+-----------------------------------------------------------
+vim.lsp.config('*', {
+    capabilities = require('cmp_nvim_lsp').default_capabilities(),
+    on_attach = lsp_keybindings,
+})
