@@ -99,5 +99,15 @@
       "\\verb|$1|"
     ],
     "description": "Insert single line verbatim"
+  },
+
+  "listing": {
+    "prefix": ["list"],
+    "body": [
+      "\\begin{lstlisting}",
+      "$1",
+      "\\end{lstlisting}"
+    ],
+    "description": "Insert single line verbatim"
   }
 }
