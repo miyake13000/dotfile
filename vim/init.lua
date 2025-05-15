@@ -603,19 +603,6 @@ require('lazy').setup({
         },
         opts = {},
     }, {
-        -- Markdown へのイメージ貼り付け
-        "HakonHarnes/img-clip.nvim",
-        event = "VeryLazy",
-        opts = {
-            default = {
-                embed_image_as_base64 = false,
-                prompt_for_file_name = false,
-                drag_and_drop = {
-                    insert_mode = true,
-                },
-            },
-        },
-    }, {
         -- Markdown ファイルの見た目を豪華に
         'MeanderingProgrammer/render-markdown.nvim',
         event = { 'BufReadPre', 'BufNewFile' },
@@ -624,6 +611,7 @@ require('lazy').setup({
         },
         ft = { "markdown", "Avante" },
     }, {
+        -- Lazygit を vim 上で使う
         "kdheepak/lazygit.nvim",
         dependencies = {
             "nvim-lua/plenary.nvim",
@@ -632,8 +620,8 @@ require('lazy').setup({
             { "<leader>g", "<cmd>LazyGit<cr>", desc = "LazyGit" }
         },
     }, {
+        -- Swagger File を可視化する
         "vinnymeller/swagger-preview.nvim",
-        event = "VeryLazy",
         file_types = { "yaml" },
         cmd = { "SwaggerPreview", "SwaggerPreviewStop", "SwaggerPreviewToggle" },
         build = "npm i",
@@ -664,6 +652,7 @@ require('lazy').setup({
             })
         end,
     }, {
+        -- AI チャットツール
         "yetone/avante.nvim",
         dependencies = {
             "stevearc/dressing.nvim",
@@ -868,12 +857,12 @@ require('lazy').setup({
             },
         },
     }, {
-        -- Rust 特化 LSP 設定
+        -- Rust 用 LSP
         'mrcjkb/rustaceanvim',
         ft = {'rust'},
         lazy = false,
     }, {
-        -- Flutter 用 統合開発環境
+        -- Flutter 用統合開発環境
         'nvim-flutter/flutter-tools.nvim',
         event = {'BufReadPre', 'BufNewFile'},
         ft = {'dart'},
@@ -883,6 +872,7 @@ require('lazy').setup({
         },
         opts = {},
     }, {
+        -- init.lua 用 LSP
         "folke/lazydev.nvim",
         ft = "lua",
         opts = {
@@ -899,7 +889,11 @@ lazy_opt
 -----------------------------------------------------------
 -- LSP Settings
 -----------------------------------------------------------
+
 vim.lsp.config('*', {
     capabilities = require('cmp_nvim_lsp').default_capabilities(),
     on_attach = lsp_keybindings,
 })
+
+-- 型情報を補足する
+vim.lsp.inlay_hint.enable()
