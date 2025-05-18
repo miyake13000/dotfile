@@ -132,32 +132,12 @@ local lsp_keybindings = function(client, bufnr)
     vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gs', '<cmd>Lspsaga hover_doc<CR>', opts_lsp)
     vim.api.nvim_buf_set_keymap(bufnr, 'n', 'g]', '<cmd>Lspsaga diagnostic_jump_next<CR>', opts_lsp)
     vim.api.nvim_buf_set_keymap(bufnr, 'n', 'g[', '<cmd>Lspsaga diagnostic_jump_prev<CR>', opts_lsp)
-
-    -- disable default diagnostic (virtual text)
-    vim.diagnostic.config({ virtual_text = false })
-    local diagnostic_status = 1
-    local toggle_diagnostic = function()
-        if diagnostic_status == 1 then
-            diagnostic_status = 0
-        else
-            diagnostic_status = 1
-        end
-    end
-    vim.api.nvim_set_keymap(
-        'n',
-        '<leader>l',
-        '',
-        {noremap = true, silent = true, desc = 'Change Diagnostic View', callback = toggle_diagnostic}
-    )
-
-    vim.api.nvim_create_augroup("lsp_diagnostics_hold", {})
-    vim.api.nvim_create_autocmd('CursorHold', {
-        group = "lsp_diagnostics_hold",
-        desc = 'Open Diagnostic with Float',
+    vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gf', '', {
+        noremap = true,
+        silent = true,
+        desc = "Format buffer",
         callback = function()
-            if diagnostic_status == 1 then
-                vim.diagnostic.open_float({ border = 'single', focusable = false })
-            end
+            vim.lsp.buf.format({ bufnr = bufnr })
         end
     })
 end
@@ -848,6 +828,10 @@ require('lazy').setup({
     }, {
         -- LSP をインストール&セットアップする
         'mason-org/mason-lspconfig.nvim',
+        dependencies = {
+            'mason-org/mason.nvim',
+            'neovim/nvim-lspconfig',
+        },
         lazy = false,
         opts = {
             automatic_enable = {
@@ -892,7 +876,69 @@ lazy_opt
 
 vim.lsp.config('*', {
     capabilities = require('cmp_nvim_lsp').default_capabilities(),
-    on_attach = lsp_keybindings,
+})
+
+vim.api.nvim_create_autocmd('LspAttach', {
+    group = vim.api.nvim_create_augroup('LspAttachSettings', {}),
+    callback = function(args)
+        local client = assert(vim.lsp.get_client_by_id(args.data.client_id))
+        local bufnr = args.buf
+
+        lsp_keybindings(client, bufnr)
+
+        -- Virtual Text での エラー表示を無効にする
+        vim.diagnostic.config({ virtual_text = false })
+
+        -- カーソル下のエラーをフロートで表示する
+        vim.api.nvim_create_autocmd('CursorHold', {
+            group = vim.api.nvim_create_augroup("lsp_diagnostics_hold", {}),
+            desc = 'Open Diagnostic with Float',
+            callback = function()
+                if vim.g.show_diagnostics then
+                    vim.diagnostic.open_float({ border = 'single', focusable = false })
+                end
+            end
+        })
+
+        -- エラー表示の有無を切り替える
+        vim.g.show_diagnostics = true
+        vim.api.nvim_buf_set_keymap(
+            bufnr,
+            'n',
+            '<leader>l',
+            '',
+            {
+                noremap = true,
+                silent = true,
+                desc = 'Change Diagnostic View',
+                callback = function()
+                    vim.g.show_diagnostics = not vim.g.show_diagnostics
+                    print(string.format("Show Diagnostic: %s", vim.g.show_diagnostics))
+                end
+            }
+        )
+
+        -- 保存時に自動でフォーマットする
+        if not client:supports_method('textDocument/willSaveWaitUntil')
+            and client:supports_method('textDocument/formatting') then
+            vim.api.nvim_create_autocmd('BufWritePre', {
+                group = vim.api.nvim_create_augroup('LspAutoFormat', { clear = false }),
+                buffer = bufnr,
+                callback = function()
+                    if vim.g.autoformat then
+                        vim.lsp.buf.format({ bufnr = bufnr, id = client.id, timeout_ms = 1000 })
+                    end
+                end,
+            })
+        end
+
+        -- 自動フォーマットを切り替える
+        vim.g.autoformat = false
+        vim.api.nvim_create_user_command('AutoFormatToggle', function()
+            vim.g.autoformat = not vim.g.autoformat
+            print(string.format("Auto Format: %s", vim.g.autoformat))
+        end, {})
+    end,
 })
 
 -- 型情報を補足する
