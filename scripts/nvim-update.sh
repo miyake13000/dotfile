@@ -72,7 +72,7 @@ function download_nvim() {
     tag=$1
     path="$2"
     echo -n "Downloading nvim-$tag..."
-    curl -s -L "https://github.com/neovim/neovim/releases/download/$tag/nvim-$(uname -s)-$(uname -p).appimage" > "$path"
+    curl -s -L "https://github.com/neovim/neovim/releases/download/$tag/nvim-$(uname -s)-$(uname -m).appimage" > "$path"
     chmod +x "$path" > /dev/null
     echo "done."
     echo
