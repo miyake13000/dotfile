@@ -38,3 +38,8 @@ apply = ["defer"]
 [plugins.bd]
 github = "Tarrasch/zsh-bd"
 apply = ["defer"]
+
+## Completion with fzf
+[plugins.fzf-tab]
+github = "Aloxaf/fzf-tab"
+apply = ["defer"]
