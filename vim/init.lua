@@ -308,10 +308,10 @@ require('lazy').setup({
     }, {
         -- Whitespace を強調
         'ntpeters/vim-better-whitespace',
-        lazy = false,
+        event = 'VeryLazy',
         config = function()
             vim.g.better_whitespace_filetypes_blacklist = {
-                'toggleterm', 'diff', 'qf', 'help',
+                'toggleterm', 'diff', 'qf', 'help', 'snacks_dashboard'
             }
             vim.api.nvim_set_hl(0, 'ExtraWhitespace', { bg = '#CF572D' })
         end
@@ -346,39 +346,6 @@ require('lazy').setup({
     -- lua plugins
     -----------------------------------------------------------
     {
-        -- status line を非表示にして，通知形式でメッセージを表示する
-        'folke/noice.nvim',
-        -- event = 'VimEnter',
-        lazy = false,
-        dependencies = {
-            'MunifTanjim/nui.nvim',
-            'rcarriga/nvim-notify',
-        },
-        opts = {
-            lsp = {
-                override = {
-                    ['vim.lsp.util.convert_input_to_markdown_lines'] = true,
-                    ['vim.lsp.util.stylize_markdown'] = true,
-                    ['cmp.entry.get_documentation'] = true,
-                },
-            },
-            presets = {
-                bottom_search = true,
-                command_palette = true,
-                long_message_to_split = true,
-                inc_rename = false,
-                lsp_doc_border = false,
-            },
-        },
-    }, {
-        -- インデントの可視化
-        'lukas-reineke/indent-blankline.nvim',
-        event = { 'BufReadPre', 'BufNewFile' },
-        config = function()
-            vim.api.nvim_set_hl(0, 'IblScope', { fg = '#f0f0f0' })
-            require('ibl').setup({scope = { char = '▏' }})
-        end,
-    }, {
         -- Insert mode から抜けると IME を無効にする
         'keaising/im-select.nvim',
         event = 'InsertEnter',
@@ -443,14 +410,6 @@ require('lazy').setup({
             numhl = true,
         }
     }, {
-        -- 引数なしで起動すると起動画面を表示する
-        'goolord/alpha-nvim',
-        event = 'BufEnter',
-        dependencies = { 'nvim-tree/nvim-web-devicons' },
-        config = function()
-            require('alpha').setup(require('alpha.themes.dashboard').config)
-        end,
-    }, {
         -- コードをハイライトする
         'nvim-treesitter/nvim-treesitter',
         -- event = 'VimEnter',
@@ -493,23 +452,10 @@ require('lazy').setup({
         -- スクロールをスムーズにする
         'karb94/neoscroll.nvim',
         event = 'VeryLazy',
-        config = function()
-            local neoscroll = require('neoscroll')
-            local keymap = {
-                ["<C-u>"] = function() neoscroll.ctrl_u({ duration = 75 }) end;
-                ["<C-d>"] = function() neoscroll.ctrl_d({ duration = 75 }) end;
-                ["<C-b>"] = function() neoscroll.ctrl_b({ duration = 150 }) end;
-                ["<C-f>"] = function() neoscroll.ctrl_f({ duration = 150 }) end;
-                ["zt"]    = function() neoscroll.zt({ half_win_duration = 75 }) end;
-                ["zz"]    = function() neoscroll.zz({ half_win_duration = 75 }) end;
-                ["zb"]    = function() neoscroll.zb({ half_win_duration = 75 }) end;
-            }
-            local modes = { 'n', 'v', 'x' }
-            for key, func in pairs(keymap) do
-              vim.keymap.set(modes, key, func)
-            end
-        end
-
+        opts = {
+            mappings = { '<C-u>', '<C-d>', '<C-b>', '<C-f>', '<C-y>', '<C-e>', 'zt', 'zz', 'zb', },
+            duration_multiplier = 0.5,   -- Global duration multiplier
+        },
     }, {
         -- comment out プラグイン
         'numToStr/Comment.nvim',
@@ -615,6 +561,101 @@ require('lazy').setup({
         opts = {
             next = 'tabs',
             quit = false,
+        },
+    }, {
+        -- utility plugin
+        "folke/snacks.nvim",
+        lazy = false,
+        opts = {
+            bigfile = { enabled = true },
+            dashboard = { enabled = true },
+            explorer = { enabled = false },
+            indent = { enabled = true },
+            input = { enabled = true },
+            picker = { enabled = true },
+            notifier = { enabled = true },
+            quickfile = { enabled = true },
+            scope = { enabled = true },
+            scroll = { enabled = false },
+            statuscolumn = { enabled = true },
+            words = { enabled = true },
+            styles = {
+                scratch = {
+                    width = 200,
+                    height = 50,
+                }
+            }
+        },
+        keys = {
+            -- Other
+            { "<leader>.",  function() Snacks.scratch() end, desc = "Toggle Scratch Buffer" },
+            { "<leader>S",  function() Snacks.scratch.select() end, desc = "Select Scratch Buffer" },
+            { "<leader>n",  function() Snacks.notifier.show_history() end, desc = "Notification History" },
+            { "<leader>un", function() Snacks.notifier.hide() end, desc = "Dismiss All Notifications" },
+        },
+        init = function()
+            vim.api.nvim_create_autocmd("User", {
+                pattern = "VeryLazy",
+                callback = function()
+                    -- Setup some globals for debugging (lazy-loaded)
+                    _G.dd = function(...)
+                        Snacks.debug.inspect(...)
+                    end
+                    _G.bt = function()
+                        Snacks.debug.backtrace()
+                    end
+
+                    -- Override print to use snacks for `:=` command
+                    if vim.fn.has("nvim-0.11") == 1 then
+                        vim.print = function(_, ...)
+                            dd(...)
+                        end
+                    else
+                        vim.print = _G.dd
+                    end
+
+                    -- Create some toggle mappings
+                    Snacks.toggle.diagnostics():map("<leader>ud")
+                    Snacks.toggle.inlay_hints():map("<leader>uh")
+                end,
+            })
+        end,
+    }, {
+        -- Yank を便利にする
+        "gbprod/yanky.nvim",
+        dependencies = { "folke/snacks.nvim" },
+        opts = {
+            ring = {
+                history_length = 100,
+                storage = "shada",
+                storage_path = vim.fn.stdpath("data") .. "/databases/yanky.db", -- Only for sqlite storage
+                sync_with_numbered_registers = true,
+                cancel_event = "update",
+                ignore_registers = { "_" },
+                update_register_on_cycle = false,
+                permanent_wrapper = nil,
+            },
+            system_clipboard = {
+                sync_with_ring = true,
+                clipboard_register = nil,
+            },
+        },
+        keys = {
+            { "y", "<Plug>(YankyYank)", mode = { "n", "x" }, desc = "Yank text" },
+            { "p", "<Plug>(YankyPutAfter)", mode = { "n", "x" }, desc = "Put yanked text after cursor" },
+            { "P", "<Plug>(YankyPutBefore)", mode = { "n", "x" }, desc = "Put yanked text before cursor" },
+            { "gp", "<Plug>(YankyGPutAfter)", mode = { "n", "x" }, desc = "Put yanked text after cursor and leave cursor after" },
+            { "gP", "<Plug>(YankyGPutBefore)", mode = { "n", "x" }, desc = "Put yanked text before cursor and leave cursor after" },
+            { "=p", "<Plug>(YankyPutAfterFilter)", desc = "Put after applying a filter" },
+            { "=P", "<Plug>(YankyPutBeforeFilter)", desc = "Put before applying a filter" },
+            {
+                "<leader>p",
+                function()
+                    Snacks.picker.yanky()
+                end,
+                mode = { "n", "x" },
+                desc = "Open Yank History",
+            },
         },
     },
     -----------------------------------------------------------
