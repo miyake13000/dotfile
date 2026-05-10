@@ -32,19 +32,52 @@
   },
 
   "table": {
-    "prefix": ["table"],
+    "prefix": ["tab"],
     "body": [
       "\\begin{table}[tb]",
       "\t\\begin{center}",
       "\t\t\\caption{$1}\\label{tab:$2}",
       "\t\t\\begin{tabular}{$3}",
-      "\t\t\t\\hline\\hline\\\\\\",
+      "\t\t\t\\hline\\hline",
       "\t\t\t$0",
+      "\t\t\t\\hline",
+      "\t\t\t\\hline",
       "\t\t\t\\end{tabular}",
       "\t\\end{center}",
       "\\end{table}"
     ],
     "description": "create table"
+  },
+
+  "tab-line": {
+    "prefix": ["tab-line"],
+    "body": [
+      "\\begin{table}[tb]",
+      "\t\\begin{center}",
+      "\t\t\\caption{$1}\\label{tab:$2}",
+      "\t\t\\begin{tabular}{$3}",
+      "\t\t\t\\toprule",
+      "\t\t\t$0",
+      "\t\t\t\\midrule",
+      "\t\t\t\\bottomrule",
+      "\t\t\t\\end{tabular}",
+      "\t\\end{center}",
+      "\\end{table}"
+    ],
+    "description": "create table"
+  },
+
+  "figure": {
+    "prefix": ["fig"],
+    "body": [
+      "\\begin{figure}[tb]",
+      "\t\\begin{center}",
+      "\t\t\\includegraphics[clip,width=0.95\\columnwidth]{figs/$1.pdf}",
+      "\t\\end{center}",
+      "\t\\caption{$2}\\label{fig:$3}",
+      "\\end{figure}"
+    ],
+    "description": "create figure"
   },
 
   "insertfigure": {
@@ -108,6 +141,6 @@
       "$1",
       "\\end{lstlisting}"
     ],
-    "description": "Insert single line verbatim"
+    "description": "Insert listing environment"
   }
 }
