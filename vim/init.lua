@@ -412,13 +412,17 @@ require('lazy').setup({
     }, {
         -- コードをハイライトする
         'nvim-treesitter/nvim-treesitter',
-        -- event = 'VimEnter',
+        -- branch = 'main', -- 2025 に master -> main にフルリライト
         lazy = false,
         build = ':TSUpdate',
         config = function()
-            require('nvim-treesitter.configs').setup({
-                highlight = { enable = true },
-                matchup = { enable = true },
+            vim.api.nvim_create_autocmd("FileType", {
+                group = vim.api.nvim_create_augroup("vim-treesitter-start", {}),
+                callback = function(ctx)
+                    -- 必要に応じて`ctx.match`に入っているファイルタイプの値に応じて挙動を制御
+                    -- `pcall`でエラーを無視することでパーサーやクエリがあるか気にしなくてすむ
+                    pcall(vim.treesitter.start)
+                end,
             })
         end
     }, {
@@ -706,74 +710,6 @@ require('lazy').setup({
         keys = {
             { '<leader>ff', '<CMD>Telescope find_files<CR>', desc = 'Telescope find files'},
             { '<leader>fg', '<CMD>Telescope live_grep<CR>', desc = 'Telescope live grep'},
-        },
-    },
-    -----------------------------------------------------------
-    -- obsidian
-    -----------------------------------------------------------
-    {
-        -- メモ管理
-        "obsidian-nvim/obsidian.nvim",
-        version = "*", -- use latest release, remove to use latest commit
-        event = "VeryLazy",
-        keys = {
-            { '<leader><leader>o',
-              '<CMD>Obsidian open<CR>',
-              mode = {'n'},
-              desc = 'Open Obsidian note' },
-            { '<leader><leader>n',
-              '<CMD>Obsidian new<CR>',
-              mode = {'n'},
-              desc = 'Create new Obsidian note' },
-            { '<leader><leader>t',
-              '<CMD>Obsidian today<CR>',
-              mode = {'n'},
-              desc = 'Create today\'s note' },
-            { '<leader><leader>s',
-              '<CMD>Obsidian search<CR>',
-              mode = {'n'},
-              desc = 'Search Obsidian note' },
-        },
-
-        ---@module 'obsidian'
-        ---@type obsidian.config
-        opts = {
-            legacy_commands = false, -- this will be removed in the next major release
-            ui = { enable = false },
-            workspaces = {
-                {
-                    name = "Default",
-                    path = "~/cloud/Dropbox/obsidian/Default/",
-                },
-            },
-
-            daily_notes = {
-                folder = "daily",
-                template = nil, -- テンプレートの設定（必要なら指定）
-            },
-        },
-    },
-    {
-        "oflisback/obsidian-bridge.nvim",
-        opts = {
-            obsidian_server_address = "http://127.0.0.1:27123/",
-            cert_path = nil,
-            scroll_sync = true,
-
-        },
-        keys = {
-            { '<leader><leader>o',
-              '<CMD>Obsidian open<CR><CMD>ObsidianBridgeOn<CR>',
-              mode = {'n'},
-              desc = 'Open Obsidian note' },
-        },
-        event = {
-            "BufReadPre *.md",
-            "BufNewFile *.md",
-        },
-        dependencies = {
-            "nvim-lua/plenary.nvim",
-            "obsidian-nvim/obsidian.nvim",
         },
     },
     -----------------------------------------------------------
