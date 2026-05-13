@@ -3,6 +3,14 @@ vim.loader.enable()
 vim.opt.encoding = 'utf8'
 vim.scriptencoding = 'utf8'
 
+local s_obj = vim.system({'sh', '-c', 'uname -r | grep -q microsoft'})
+local res = s_obj:wait(1000)
+if res.code == 0 then
+    IsWSL = true
+else
+    IsWSL = false
+end
+
 -----------------------------------------------------------
 -- common options
 -----------------------------------------------------------
@@ -322,7 +330,11 @@ require('lazy').setup({
         event = 'VeryLazy',
         config = function()
             -- tex ファイルコンパイル時に pdf を開くビューワー
-            vim.g.vimtex_view_method = 'zathura'
+            if IsWSL then
+                vim.g.vimtex_view_method = 'wsl-open'
+            else
+                vim.g.vimtex_view_method = 'zathura'
+            end
             -- tex ファイルをコンパイルするコマンド
             vim.g.vimtex_compiler_method = 'generic'
             vim.g.vimtex_compiler_generic = { command = 'make all' }
@@ -354,9 +366,9 @@ require('lazy').setup({
         end,
         config = function()
             local opt = {}
-            if is_wsl then
-                opt['default_im_select'] = '1033'
-                opt['default_command'] = 'im-select.exe'
+            if IsWSL then
+                opt['default_im_select'] = '0'
+                opt['default_command'] = 'spzenhan.exe'
             else
                 opt['default_im_select'] = 'keyboard-jp'
                 opt['default_command'] = 'fcitx5-remote'
