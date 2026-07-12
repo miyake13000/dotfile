@@ -412,21 +412,13 @@ require('lazy').setup({
             numhl = true,
         }
     }, {
-        -- コードをハイライトする
-        'nvim-treesitter/nvim-treesitter',
-        -- branch = 'main', -- 2025 に master -> main にフルリライト
-        lazy = false,
-        build = ':TSUpdate',
-        config = function()
-            vim.api.nvim_create_autocmd("FileType", {
-                group = vim.api.nvim_create_augroup("vim-treesitter-start", {}),
-                callback = function(ctx)
-                    -- 必要に応じて`ctx.match`に入っているファイルタイプの値に応じて挙動を制御
-                    -- `pcall`でエラーを無視することでパーサーやクエリがあるか気にしなくてすむ
-                    pcall(vim.treesitter.start)
-                end,
-            })
-        end
+        -- 構文解析ツールを管理
+        "romus204/tree-sitter-manager.nvim",
+        dependencies = {}, -- tree-sitter CLI must be installed system-wide
+	branch = 'develop',
+	config = function()
+            require("tree-sitter-manager").setup()
+        end,
     }, {
         -- terminal の見た目をよくする
         'akinsho/toggleterm.nvim',
@@ -842,7 +834,7 @@ require('lazy').setup({
     -- Adapter Plugins
     -----------------------------------------------------------
     {
-        -- LSP サーバ用のConfigセット
+        -- LSP 用のデータセット
         'neovim/nvim-lspconfig',
         lazy = false,
     }, {
