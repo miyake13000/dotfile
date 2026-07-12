@@ -80,6 +80,9 @@ vim.opt.splitright = true
 vim.opt.updatetime = 300
 -- 矩形選択で行末以上に移動できる
 vim.opt.virtualedit:append("block")
+-- 画面の上下に常にxx行の余裕を持たせてスクロールする
+vim.g.scrolloff_default = 10
+vim.opt.scrolloff = vim.g.scrolloff_default
 
 -- Tex の filetype を設定
 vim.g.tex_flavor = 'latex'
@@ -108,7 +111,7 @@ set_keymap('n', 'N', 'Nzz', opts)
 -- カーソルが常に画面中央に来るようにする
 set_keymap('n', 'zx', '<CMD>CenterCursorToggle<CR>zz', opts)
 -- visual mode で paste しても register を更新しない
-set_keymap('v', 'p', 'P', opts)
+set_keymap("x", "p", [["_dP]], opts)
 set_keymap('v', 'P', 'p', opts)
 -- insert, command mode 中にカーソル移動する
 set_keymap('i', '<C-h>', '<Left>', opts)
@@ -119,11 +122,11 @@ set_keymap('c', '<C-l>', '<Right>', opts)
 set_keymap('i', '<C-j>', '<BS>', opts)
 set_keymap('i', '<C-k>', '<Del>', opts)
 -- buffer の切替
-set_keymap('n', '<C-j>', ':bn<CR>', opts)
-set_keymap('n', '<C-k>', ':bp<CR>', opts)
+set_keymap('n', '<C-h>', ':bn<CR>', opts)
+set_keymap('n', '<C-l>', ':bp<CR>', opts)
 -- window の切替
-set_keymap('n', '<C-h>', '<C-w>W', opts)
-set_keymap('n', '<C-l>', '<C-w>w', opts)
+set_keymap('n', '<C-j>', '<C-w>W', opts)
+set_keymap('n', '<C-k>', '<C-w>w', opts)
 -- Windows を開く
 set_keymap('n', '<leader>s', ':split<CR>', opts)
 set_keymap('n', '<leader>v', ':vsplit<CR>', opts)
@@ -133,21 +136,17 @@ set_keymap('n', '<leader>q', '<C-w>q', opts)
 -- LSP 用の Keybindings
 local lsp_keybindings = function(client, bufnr)
     local opts_lsp = { noremap = true, silent = true }
-    vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gd', '<cmd>Lspsaga goto_definition<CR>', opts_lsp)
-    vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gr', '<cmd>Lspsaga finder<CR>', opts_lsp)
-    vim.api.nvim_buf_set_keymap(bufnr, 'n', 'grn', '<cmd>Lspsaga rename<CR>', opts_lsp)
-    vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gca', '<cmd>Lspsaga code_action<CR>', opts_lsp)
-    vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gs', '<cmd>Lspsaga hover_doc<CR>', opts_lsp)
-    vim.api.nvim_buf_set_keymap(bufnr, 'n', 'g]', '<cmd>Lspsaga diagnostic_jump_next<CR>', opts_lsp)
-    vim.api.nvim_buf_set_keymap(bufnr, 'n', 'g[', '<cmd>Lspsaga diagnostic_jump_prev<CR>', opts_lsp)
-    vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gf', '', {
-        noremap = true,
-        silent = true,
-        desc = "Format buffer",
-        callback = function()
-            vim.lsp.buf.format({ bufnr = bufnr })
-        end
-    })
+    vim.keymap.set('n', 'gd', vim.lsp.buf.definition, { buffer = bufnr, silent = true, desc = 'LSP: go to definition' })
+    vim.keymap.set('n', 'grr', vim.lsp.buf.references, { buffer = bufnr, silent = true, desc = 'LSP: references' })
+    vim.keymap.set('n', 'grn', vim.lsp.buf.rename, { buffer = bufnr, silent = true, desc = 'LSP: rename' })
+    vim.keymap.set({ 'n', 'v' }, 'gra', vim.lsp.buf.code_action, { buffer = bufnr, silent = true, desc = 'LSP: code action' })
+    vim.keymap.set('n', 'gs', vim.lsp.buf.hover, { buffer = bufnr, silent = true, desc = 'LSP: hover' })
+    vim.keymap.set('n', 'g]', function()
+      vim.diagnostic.jump({ count = 1, float = true })
+    end, { buffer = bufnr, silent = true, desc = 'Diagnostic: next' })
+    vim.keymap.set('n', 'g[', function()
+      vim.diagnostic.jump({ count = -1, float = true })
+    end, { buffer = bufnr, silent = true, desc = 'Diagnostic: previous' })
 end
 
 
@@ -157,7 +156,7 @@ end
 -- カーソルが常に画面の中心になるようにする
 vim.api.nvim_create_user_command('CenterCursorToggle', function()
     if vim.o.scrolloff == 999 then
-        vim.opt.scrolloff = 0
+        vim.opt.scrolloff = vim.g.scrolloff_default
     else
         vim.opt.scrolloff = 999
     end
@@ -298,15 +297,6 @@ require('lazy').setup({
         'machakann/vim-sandwich',
         event = 'VeryLazy',
     }, {
-        -- Rust フォーマッタ
-        'rust-lang/rust.vim',
-        ft = 'rust',
-        event = 'VeryLazy',
-        config = function()
-            -- Rust ファイルを保存時，自動で rustfmt にかける
-            vim.g.rustfmt_autosave = 1
-        end
-    }, {
         -- 自動でインデント幅を設定する
         'timakro/vim-yadi',
         event = 'VeryLazy',
@@ -331,7 +321,9 @@ require('lazy').setup({
         config = function()
             -- tex ファイルコンパイル時に pdf を開くビューワー
             if IsWSL then
-                vim.g.vimtex_view_method = 'wsl-open'
+                -- vim.g.vimtex_view_general_viewer = 'sumatrapdf'
+                -- vim.g.vimtex_view_general_options = '-reuse-instance -forward-search @tex @line @pdf'
+                vim.g.vimtex_view_general_viewer = 'wsl-open'
             else
                 vim.g.vimtex_view_method = 'zathura'
             end
@@ -393,11 +385,9 @@ require('lazy').setup({
         end,
     }, {
         -- カラーコードに色をつける
-        'norcalli/nvim-colorizer.lua',
-        event = { 'BufReadPre', 'BufNewFile' },
-        config = function()
-            require('colorizer').setup()
-        end
+        "catgoose/nvim-colorizer.lua",
+        event = { "BufReadPre", "BufNewFile" },
+        opts = {},
     }, {
         -- TODO などを目立たせる
         'folke/todo-comments.nvim',
@@ -579,28 +569,35 @@ require('lazy').setup({
             quit = false,
         },
     }, {
+        -- インデントガイドを表示
+    --     "lukas-reineke/indent-blankline.nvim",
+    --     main = "ibl",
+    --     opts = {},
+    -- }, {
         -- utility plugin
         "folke/snacks.nvim",
         lazy = false,
         opts = {
-            bigfile = { enabled = true },
             dashboard = { enabled = true },
-            explorer = { enabled = false },
-            indent = { enabled = true },
-            input = { enabled = true },
-            picker = { enabled = true },
-            notifier = { enabled = true },
+            bigfile = { enabled = true },
             quickfile = { enabled = true },
-            scope = { enabled = true },
-            scroll = { enabled = false },
-            statuscolumn = { enabled = true },
-            words = { enabled = true },
+            scratch = { enabled = true },
             styles = {
                 scratch = {
                     width = 200,
                     height = 50,
                 }
-            }
+            },
+            indent = { enabled = true },
+            scope = { enabled = true },
+
+            input = { enabled = false },
+            notifier = { enabled = false },
+            scroll = { enabled = false },
+            statuscolumn = { enabled = false },
+            words = { enabled = true },
+            picker = { enabled = false },
+            explorer = { enabled = false },
         },
         keys = {
             -- Other
@@ -637,42 +634,28 @@ require('lazy').setup({
             })
         end,
     }, {
-        -- Yank を便利にする
-        "gbprod/yanky.nvim",
-        dependencies = { "folke/snacks.nvim" },
-        opts = {
-            ring = {
-                history_length = 100,
-                storage = "shada",
-                storage_path = vim.fn.stdpath("data") .. "/databases/yanky.db", -- Only for sqlite storage
-                sync_with_numbered_registers = true,
-                cancel_event = "update",
-                ignore_registers = { "_" },
-                update_register_on_cycle = false,
-                permanent_wrapper = nil,
-            },
-            system_clipboard = {
-                sync_with_ring = true,
-                clipboard_register = nil,
-            },
-        },
+        "monaqa/dial.nvim",
         keys = {
-            { "y", "<Plug>(YankyYank)", mode = { "n", "x" }, desc = "Yank text" },
-            { "p", "<Plug>(YankyPutAfter)", mode = { "n", "x" }, desc = "Put yanked text after cursor" },
-            { "P", "<Plug>(YankyPutBefore)", mode = { "n", "x" }, desc = "Put yanked text before cursor" },
-            { "gp", "<Plug>(YankyGPutAfter)", mode = { "n", "x" }, desc = "Put yanked text after cursor and leave cursor after" },
-            { "gP", "<Plug>(YankyGPutBefore)", mode = { "n", "x" }, desc = "Put yanked text before cursor and leave cursor after" },
-            { "=p", "<Plug>(YankyPutAfterFilter)", desc = "Put after applying a filter" },
-            { "=P", "<Plug>(YankyPutBeforeFilter)", desc = "Put before applying a filter" },
-            {
-                "<leader>p",
-                function()
-                    Snacks.picker.yanky()
-                end,
-                mode = { "n", "x" },
-                desc = "Open Yank History",
-            },
+            { "<C-a>", function() return require("dial.map").inc_normal() end, desc = "Increment", expr = true, mode = { "n", "x" } },
+            { "<C-s>", function() return require("dial.map").dec_normal() end, desc = "Decrement", expr = true, mode = { "n", "x" } },
+            { "g<C-a>", function() return require("dial.map").inc_gnormal() end, desc = "Increment (visual)", expr = true, mode = { "n", "x" } },
+            { "g<C-s>", function() return require("dial.map").dec_gnormal() end, desc = "Decrement (visual)", expr = true, mode = { "n", "x" } },
         },
+        config = function()
+            local augend = require("dial.augend")
+            require("dial.config").augends:register_group{
+                default = {
+                    augend.integer.alias.decimal,
+                    augend.integer.alias.hex,
+                    augend.date.alias["%Y/%m/%d"],
+                    augend.date.alias["%H:%M:%S"],
+                    augend.constant.alias.alpha,
+                    augend.constant.alias.Alpha,
+                    augend.constant.alias.bool,
+                    augend.semver.alias.semver,
+                },
+            }
+        end
     },
     -----------------------------------------------------------
     -- AI Boost
@@ -689,27 +672,33 @@ require('lazy').setup({
             })
         end,
     }, {
-        -- AI チャットツール
         "yetone/avante.nvim",
-        dependencies = {
-            "stevearc/dressing.nvim",
-            "nvim-lua/plenary.nvim",
-            "MunifTanjim/nui.nvim",
-            "ibhagwan/fzf-lua", -- for file_selector provider fzf
-            "zbirenbaum/copilot.lua", -- for providers='copilot'
-            {
-                -- Make sure to set this up properly if you have lazy=true
-                'MeanderingProgrammer/render-markdown.nvim',
-                opts = {
-                    file_types = { "markdown", "Avante" },
+        -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
+        -- ⚠️ must add this setting! ! !
+        build = vim.fn.has("win32") ~= 0
+        and "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false"
+        or "make",
+        event = "VeryLazy",
+        version = false, -- Never set this value to "*"! Never!
+        ---@module 'avante'
+        ---@type avante.Config
+        opts = {
+            provider = "codex",
+            acp_providers = {
+                ["codex"] = {
+                    command = "codex-acp",
+                    args = {},
+                    env = {
+                        NODE_NO_WARNINGS = "1",
+                        OPENAI_API_KEY = os.getenv("OPENAI_API_KEY"),
+                    },
                 },
-                ft = { "markdown", "Avante" },
             },
         },
-        event = 'VeryLazy',
-        version = false,
-        opts = {},
-        build = "make",
+        dependencies = {
+            "nvim-lua/plenary.nvim",
+            "MunifTanjim/nui.nvim",
+        },
     },
     -----------------------------------------------------------
     -- Telescope plugin
@@ -850,26 +839,10 @@ require('lazy').setup({
         end
     },
     -----------------------------------------------------------
-    -- LSP Plugins
+    -- Adapter Plugins
     -----------------------------------------------------------
     {
-        -- LSP のUI を改善する
-        'nvimdev/lspsaga.nvim',
-        dependencies = {
-            'nvim-treesitter/nvim-treesitter',
-            'nvim-tree/nvim-web-devicons',
-        },
-        event = 'LspAttach',
-        opts = {
-            ui = {
-                code_action = ''
-            },
-            lightbulb = {
-                virtual_text = false
-            }
-        },
-    }, {
-        -- LSP 用のデータセット
+        -- LSP サーバ用のConfigセット
         'neovim/nvim-lspconfig',
         lazy = false,
     }, {
@@ -878,12 +851,12 @@ require('lazy').setup({
         lazy = false,
         opts = {},
     }, {
-        -- LSP ツールのパスを通す
+        -- LSP ツールをインストール&セットアップ
         'mason-org/mason.nvim',
         lazy = false,
         opts = { ui = { border = 'single' } }
     }, {
-        -- LSP をインストール&セットアップする
+        -- Mason と LSPConfig を連携させる
         'mason-org/mason-lspconfig.nvim',
         dependencies = {
             'mason-org/mason.nvim',
@@ -921,7 +894,74 @@ require('lazy').setup({
             { path = "${3rd}/luv/library", words = { "vim%.uv" } },
           },
         },
-    },
+    }, {
+        -- formatter を設定
+        "stevearc/conform.nvim",
+        event = {'BufReadPre', 'BufNewFile'},
+        config = function()
+            require("conform").setup({
+                formatters_by_ft = {
+                    lua = { "stylua" },
+                    python = { "ruff_format" },
+                    rust = { "rustfmt" },
+
+                    javascript = { "prettier" },
+                    typescript = { "prettier" },
+                    javascriptreact = { "prettier" },
+                    typescriptreact = { "prettier" },
+                    json = { "prettier" },
+                    yaml = { "prettier" },
+                    markdown = { "prettier" },
+
+                    sh = { "shfmt" },
+                },
+
+                -- save 時に自動でフォーマットする
+                format_on_save = function(bufnr)
+                    if not vim.b[bufnr].format_on_save_enabled then
+                        return
+                    end
+
+                    return {
+                        timeout_ms = 500,
+                        lsp_format = "fallback",
+                    }
+                end,
+            })
+
+            -- format コマンド
+            vim.api.nvim_create_user_command(
+                "Format",
+                    function()
+                        require("conform").format({
+                            async = true,
+                            lsp_format = "fallback",
+                        })
+                    end,
+                { desc = "Format current buffer", }
+            )
+
+            vim.keymap.set("n", "<leader>f", "<cmd>Format<CR>", {
+                desc = "Format current buffer",
+            })
+
+            -- format on save を切り替えるコマンド
+            vim.api.nvim_create_user_command("FormatOnSaveToggle", function()
+                vim.b.format_on_save_enabled = not vim.b.format_on_save_enabled
+
+                vim.notify(
+                    "Format on save: "
+                    .. (vim.b.format_on_save_enabled and "enabled" or "disabled")
+                    .. " for current buffer"
+                )
+            end, { desc = "Toggle format on save for current buffer", })
+
+            vim.keymap.set("n", "<leader>tf", "<cmd>FormatOnSaveToggle<CR>", {
+                desc = "Toggle format on save",
+            })
+
+        end
+    }
     },
 lazy_opt
 )
@@ -939,9 +979,41 @@ vim.lsp.config('*', {
 vim.lsp.inlay_hint.enable()
 vim.api.nvim_create_user_command('InlayHintToggle', function()
     vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
-    print(string.format("Inlay Hint: %s", vim.lsp.inlay_hint.is_enabled()))
+    vim.notify(string.format("Inlay Hint: %s", vim.lsp.inlay_hint.is_enabled()))
 end, {})
 
+-- diagnostic の行末→非表示，フロート表示→ボーダー付表示
+vim.diagnostic.config({
+  virtual_text = false,
+  float = {
+    border = "single",
+    focusable = false,
+  },
+})
+
+-- diagnostic のフロート表示をカーソル位置に追従させる
+vim.g.show_diagnostics = true
+vim.api.nvim_create_autocmd("CursorHold", {
+  group = vim.api.nvim_create_augroup("DiagnosticsFloat", { clear = true }),
+  callback = function()
+    if vim.g.show_diagnostics then
+      vim.diagnostic.open_float(nil, {
+        border = "single",
+        focusable = false,
+      })
+    end
+  end,
+})
+
+-- diagnostic のフロート表示を切り替えるコマンド
+vim.keymap.set("n", "<leader>d", function()
+  vim.g.show_diagnostics = not vim.g.show_diagnostics
+  vim.notify(string.format("Show Diagnostic: %s", vim.g.show_diagnostics))
+end, {
+  desc = "Toggle diagnostic float",
+})
+
+-- LSP がアタッチされたときに keybindings を設定
 vim.api.nvim_create_autocmd('LspAttach', {
     group = vim.api.nvim_create_augroup('LspAttachSettings', {}),
     callback = function(args)
@@ -949,58 +1021,5 @@ vim.api.nvim_create_autocmd('LspAttach', {
         local bufnr = args.buf
 
         lsp_keybindings(client, bufnr)
-
-        -- Virtual Text での エラー表示を無効にする
-        vim.diagnostic.config({ virtual_text = false })
-
-        -- カーソル下のエラーをフロートで表示する
-        vim.api.nvim_create_autocmd('CursorHold', {
-            group = vim.api.nvim_create_augroup("lsp_diagnostics_hold", {}),
-            desc = 'Open Diagnostic with Float',
-            callback = function()
-                if vim.g.show_diagnostics then
-                    vim.diagnostic.open_float({ border = 'single', focusable = false })
-                end
-            end
-        })
-
-        -- エラー表示の有無を切り替える
-        vim.g.show_diagnostics = true
-        vim.api.nvim_buf_set_keymap(
-            bufnr,
-            'n',
-            '<leader>l',
-            '',
-            {
-                noremap = true,
-                silent = true,
-                desc = 'Change Diagnostic View',
-                callback = function()
-                    vim.g.show_diagnostics = not vim.g.show_diagnostics
-                    print(string.format("Show Diagnostic: %s", vim.g.show_diagnostics))
-                end
-            }
-        )
-
-        -- 保存時に自動でフォーマットする
-        if not client:supports_method('textDocument/willSaveWaitUntil')
-            and client:supports_method('textDocument/formatting') then
-            vim.api.nvim_create_autocmd('BufWritePre', {
-                group = vim.api.nvim_create_augroup('LspAutoFormat', { clear = false }),
-                buffer = bufnr,
-                callback = function()
-                    if vim.g.autoformat then
-                        vim.lsp.buf.format({ bufnr = bufnr, id = client.id, timeout_ms = 1000 })
-                    end
-                end,
-            })
-        end
-
-        -- 自動フォーマットを切り替える
-        vim.g.autoformat = false
-        vim.api.nvim_create_user_command('AutoFormatToggle', function()
-            vim.g.autoformat = not vim.g.autoformat
-            print(string.format("Auto Format: %s", vim.g.autoformat))
-        end, {})
     end,
 })

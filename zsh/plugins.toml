@@ -42,4 +42,4 @@ apply = ["defer"]
 ## Completion with fzf
 [plugins.fzf-tab]
 github = "Aloxaf/fzf-tab"
-apply = ["defer"]
+# apply = ["defer"]

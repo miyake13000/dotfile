@@ -1,4 +1,5 @@
 format = """
+${env_var.ORCA}\
 $hostname\
 [](bg:#151515 fg:#f0f0f0)\
 $username\
@@ -33,9 +34,14 @@ ${custom.doll}\
 # Disable the blank line at the start of the prompt
 add_newline = false
 
+[env_var.ORCA]
+variable = "ORCA"
+style = "bg:#ff0000 fg:#151515"
+format = "[ orca ]($style)[](bg:#ff0000 fg:#f0f0f0)"
+
 [hostname]
 ssh_only = true
-style = "bg:#f0f0f0 fg:#000000"
+style = "bg:#f0f0f0 fg:#151515"
 format = "[ $hostname ]($style)"
 disabled = false
 
