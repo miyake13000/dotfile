@@ -20,11 +20,10 @@ fpath=($fpath $HOME/.local/share/zsh/Completions)
 ############################################
 # plugins
 ############################################
-source "/home/miyake/.local/share/sheldon/repos/github.com/Tarrasch/zsh-bd/bd.plugin.zsh"
-source "/home/miyake/.local/share/sheldon/repos/github.com/zsh-users/zsh-autosuggestions/zsh-autosuggestions.plugin.zsh"
-source "/home/miyake/.local/share/sheldon/repos/github.com/zsh-users/zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh"
-source "/home/miyake/.local/share/sheldon/repos/github.com/zsh-users/zsh-completions/zsh-completions.plugin.zsh"
-source "/home/miyake/.local/share/sheldon/repos/github.com/Aloxaf/fzf-tab/fzf-tab.plugin.zsh"
+source "/home/miyake/.local/share/zsh/zsh-autosuggestions/zsh-autosuggestions.plugin.zsh"
+source "/home/miyake/.local/share/zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh"
+source "/home/miyake/.local/share/zsh/zsh-completions/zsh-completions.plugin.zsh"
+source "/home/miyake/.local/share/zsh/fzf-tab/fzf-tab.plugin.zsh"
 
 ############################################
 # starship

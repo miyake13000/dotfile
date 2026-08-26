@@ -122,8 +122,8 @@ set_keymap('c', '<C-l>', '<Right>', opts)
 set_keymap('i', '<C-j>', '<BS>', opts)
 set_keymap('i', '<C-k>', '<Del>', opts)
 -- buffer の切替
-set_keymap('n', '<C-h>', ':bn<CR>', opts)
-set_keymap('n', '<C-l>', ':bp<CR>', opts)
+set_keymap('n', '<C-Tab>', ':bn<CR>', opts)
+set_keymap('n', '<C-S-Tab>', ':bp<CR>', opts)
 -- window の切替
 set_keymap('n', '<C-j>', '<C-w>W', opts)
 set_keymap('n', '<C-k>', '<C-w>w', opts)
@@ -415,10 +415,9 @@ require('lazy').setup({
         -- 構文解析ツールを管理
         "romus204/tree-sitter-manager.nvim",
         dependencies = {}, -- tree-sitter CLI must be installed system-wide
-	branch = 'develop',
-	config = function()
-            require("tree-sitter-manager").setup()
-        end,
+        opts = {
+            auto_install = true
+        }
     }, {
         -- terminal の見た目をよくする
         'akinsho/toggleterm.nvim',
