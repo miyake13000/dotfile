@@ -20,10 +20,36 @@ fpath=($fpath $HOME/.local/share/zsh/Completions)
 ############################################
 # plugins
 ############################################
-source "/home/miyake/.local/share/zsh/zsh-autosuggestions/zsh-autosuggestions.plugin.zsh"
-source "/home/miyake/.local/share/zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.plugin.zsh"
-source "/home/miyake/.local/share/zsh/zsh-completions/zsh-completions.plugin.zsh"
-source "/home/miyake/.local/share/zsh/fzf-tab/fzf-tab.plugin.zsh"
+[[ -r ~/.local/share/zsh/znap/znap.zsh ]] ||
+  git clone --depth 1 \
+    https://github.com/marlonrichert/zsh-snap.git \
+    ~/.local/share/zsh/znap
+
+source ~/.local/share/zsh/znap/znap.zsh
+
+############################################
+# Completion Plugins
+############################################
+
+znap clone zsh-users/zsh-completions
+
+# completion functionsをfpathへ追加
+fpath=(~[zsh-users/zsh-completions]/src $fpath)
+
+# completion systemを初期化
+autoload -Uz compinit
+compinit
+
+############################################
+# Completion Plugins
+############################################
+
+# Enable candidate selection with fzf-tab
+znap source Aloxaf/fzf-tab
+# Complete command with history
+znap source zsh-users/zsh-autosuggestions
+# Enable syntax highlighting
+znap source zdharma-continuum/fast-syntax-highlighting
 
 ############################################
 # starship
