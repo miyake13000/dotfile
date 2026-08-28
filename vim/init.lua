@@ -398,11 +398,17 @@ require('lazy').setup({
         }
     }, {
         -- 構文解析ツールを管理
-        "romus204/tree-sitter-manager.nvim",
-        dependencies = {}, -- tree-sitter CLI must be installed system-wide
-        opts = {
-            auto_install = true
-        }
+        "nvim-treesitter/nvim-treesitter",
+        lazy = false,
+        build = ":TSUpdate",
+
+        config = function()
+            vim.api.nvim_create_autocmd("FileType", {
+                callback = function()
+                    pcall(vim.treesitter.start)
+                end,
+            })
+        end,
     }, {
         -- terminal の見た目をよくする
         'akinsho/toggleterm.nvim',
