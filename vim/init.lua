@@ -335,6 +335,14 @@ require('lazy').setup({
             -- スニペットの保存先
             vim.g.vsnip_snippet_dir = vim.fn.stdpath('data') .. '/snip'
         end
+    }, {
+        -- not Writable なファイルを変更できるようにする
+        'lambdalisue/vim-suda',
+        cond = not IsLightMode,
+        event = "BufReadPre",
+        init = function()
+            vim.g.suda_smart_edit = 1
+        end,
     },
     -----------------------------------------------------------
     -- lua plugins
