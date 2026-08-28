@@ -15,10 +15,11 @@ if [ $SHLVL = 1 ]; then
 fi
 
 # Additional machine specific completions
-fpath=($fpath $HOME/.local/share/zsh/Completions)
+typeset -U fpath
+fpath+=("$HOME/.local/share/zsh/Completions")
 
 ############################################
-# plugins
+# plugin manager (znap)
 ############################################
 [[ -r ~/.local/share/zsh/znap/znap.zsh ]] ||
   git clone --depth 1 \
@@ -81,24 +82,22 @@ alias gb='git branch'
 alias gc='git checkout'
 alias gd='git diff'
 function gcm {
-    git commit -m "$*"
+    git commit -m '$*'
 }
 # Rust
 alias c='cargo'
 # other
 alias clear='clear -x'
-alias ps='ps auxf'
-alias less='bat'
-alias mkcd=mkcd
+alias psa='ps auxf'
+alias less='nvim -R'
 function mkcd(){
-    mkdir $1;
-    cd $1;
+    mkdir -p -- "$1" && cd -- "$1"
 }
 function swap() {
     local TMPFILE=tmp.$$
-    mv "$1" $TMPFILE
-    mv "$2" "$1"
-    mv $TMPFILE "$2"
+    mv -- "$1" "$TMPFILE" &&
+    mv -- "$2" "$1" &&
+    mv -- $TMPFILE "$2"
 }
 
 ############################################
@@ -125,7 +124,7 @@ setopt extended_glob
 if [[ -z "$ZSH_CDR_DIR" ]]; then
     ZSH_CDR_DIR=${XDG_CACHE_HOME:-$HOME/.cache}/zsh-cdr
 fi
-mkdir -p $ZSH_CDR_DIR
+mkdir -p -- "$ZSH_CDR_DIR"
 autoload -Uz chpwd_recent_dirs cdr
 autoload -U add-zsh-hook
 add-zsh-hook chpwd chpwd_recent_dirs
@@ -133,11 +132,9 @@ zstyle ':chpwd:*' recent-dirs-file $ZSH_CDR_DIR/recent-dirs
 zstyle ':chpwd:*' recent-dirs-max 1000
 zstyle ':chpwd:*' recent-dirs-default yes
 function fzf-cdr() {
-    target_dir=`cdr -l | sed 's/^[^ ][^ ]*  *//' | fzf`
-    target_dir=`echo ${target_dir/\~/$HOME}`
-    if [ -n "$target_dir" ]; then
-        cd $target_dir
-    fi
+    target_dir=$(cdr -l | sed 's/^[^ ][^ ]*  *//' | fzf)
+    target_dir=${target_dir/#\~/$HOME}
+    [[ -n $target_dir ]] && cd -- "$target_dir"
 }
 alias cdd='fzf-cdr'
 
@@ -167,7 +164,7 @@ zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
 zstyle ':fzf-tab:*' fzf-flags --color=fg:1,fg+:2 --bind='backspace:abort'
 # To make fzf-tab follow FZF_DEFAULT_OPTS.
 # NOTE: This may lead to unexpected behavior since some flags break this plugin. See Aloxaf/fzf-tab#455.
-zstyle ':fzf-tab:*' use-fzf-default-opts yes
+# zstyle ':fzf-tab:*' use-fzf-default-opts yes
 # switch group using `<` and `>`
 zstyle ':fzf-tab:*' switch-group '<' '>'
 
@@ -180,14 +177,16 @@ HISTFILE=~/.zsh_history
 
 setopt hist_expire_dups_first
 setopt hist_ignore_all_dups
-setopt hist_ignore_dups
 setopt hist_save_no_dups
 setopt share_history
 
 function select-history() {
-  BUFFER=$(history -n -r 1 | fzf --no-sort +m --query "$LBUFFER" --exact --prompt="History > ")
-  CURSOR=$#BUFFER
-  zle accept-line
+    local selected
+    selected=$(history -n -r 1 |
+        fzf --no-sort +m --query "$LBUFFER" --exact --prompt="History > ") || return
+
+    BUFFER=$selected
+    CURSOR=${#BUFFER}
 }
 zle -N select-history
 
@@ -204,14 +203,6 @@ bindkey '^q' push-input
 ############################################
 # Startup program
 ############################################
-if [ $SHLVL = 1 ]; then
-    if [ "$(tmux list-sessions 2> /dev/null )" != "" ]; then
-        tmux a > /tmp/tmux-$(whoami)
-    else
-        tmux > /tmp/tmux-$(whoami)
-    fi
-fi
-
-if [ -z "$ORCA" ] && [ "$(cat /tmp/tmux-$(whoami))" = "[exited]" ]; then
-    exit
+if [[ -z $TMUX && -z $ORCA ]]; then
+    exec tmux new-session -A
 fi
