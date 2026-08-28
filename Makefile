@@ -33,12 +33,9 @@ setup: setup-zsh setup-nvim setup-tmux setup-git setup-lang setup-alacritty
 
 setup-zsh: check-command
 	mkdir -p ~/.config
-	mkdir -p ~/.config/sheldon
 	mkdir -p ~/.local/bin
 	ln -sf $(CWD)/zsh/zshrc ~/.zshrc
 	ln -sf $(CWD)/zsh/starship.toml ~/.config/starship.toml
-	ln -sf $(CWD)/zsh/plugins.toml ~/.config/sheldon/plugins.toml
-	$(BINSTALL) sheldon
 	$(BINSTALL) starship
 	$(CWD)/scripts/install-tools.sh fzf
 
@@ -49,13 +46,12 @@ setup-nvim: check-command
 	ln -sf $(CWD)/vim/init.lua ~/.config/nvim/init.lua
 	ln -sf $(CWD)/vim/snip ~/.local/share/nvim/
 	ln -sf $(CWD)/scripts/nvim-update.sh ~/.local/bin/nvim-update
-	ln -sf $(CWD)/scripts/ggr.sh ~/.local/bin/ggr
-	$(CWD)/scripts/nvim-update.sh --force
 	$(BINSTALL) bat
 	$(BINSTALL) fd-find
 	$(BINSTALL) ripgrep
 	$(CWD)/scripts/install-tools.sh tree-sitter
 	$(CWD)/scripts/install-tools.sh lazygit
+	$(CWD)/scripts/nvim-update.sh --force
 
 setup-tmux: check-command
 	ln -sf $(CWD)/tmux/tmux.conf ~/.tmux.conf
@@ -82,18 +78,17 @@ update: update-zsh update-nvim update-lang update-git
 
 update-zsh: check-command
 	mkdir -p ~/.local/bin
-	$(BINSTALL) sheldon
 	$(BINSTALL) starship
 	$(CWD)/scripts/install-tools.sh fzf
 
 update-nvim: check-command
 	mkdir -p ~/.local/bin
-	$(CWD)/scripts/nvim-update.sh --force
 	$(BINSTALL) bat
 	$(BINSTALL) fd-find
 	$(BINSTALL) ripgrep
 	$(CWD)/scripts/install-tools.sh tree-sitter
 	$(CWD)/scripts/install-tools.sh lazygit
+	$(CWD)/scripts/nvim-update.sh --force
 
 update-lang:;	anyenv update
 
