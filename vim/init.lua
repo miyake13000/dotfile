@@ -370,12 +370,28 @@ require('lazy').setup({
         opts = {}
     }, {
         -- 括弧の補完
-        'hrsh7th/nvim-insx',
+        "windwp/nvim-autopairs",
         cond = not IsLightMode,
-        event = 'InsertEnter',
-        config = function()
-            require('insx.preset.standard').setup()
-        end
+        event = "InsertEnter",
+        opts = {
+            check_ts = true,
+            enable_check_bracket_line = true,
+        },
+    }, {
+        -- 言語ごとの閉じ記号を自動で補完する
+        "RRethy/nvim-treesitter-endwise",
+        cond = not IsLightMode,
+        vent = "InsertEnter",
+    }, {
+        -- 1行/複数行の関数引数を展開/折りたたむ
+        'Wansmer/treesj',
+        keys = {{
+            '<leader>m',
+            ':TSJToggle<CR>',
+            desc = "Extract/Fold argument",
+            mode = { 'n' },
+        }},
+        opts = { use_default_keymaps = false, },
     }, {
         -- markdown のプレビューを表示する
         'iamcco/markdown-preview.nvim',
@@ -550,9 +566,10 @@ require('lazy').setup({
                 ft = "markdown",
                 autowrite = true,
                 filekey = {
+                    id = "Inbox",
                     cwd = false,
                     branch = false,
-                    count = true,
+                    count = false,
                 },
             },
             styles = {
@@ -576,6 +593,23 @@ require('lazy').setup({
             { "<C-q>", function() Snacks.bufdelete.delete() end, desc = "Delete current buffer", mode = { "n", "v" }},
             { "gb", function() Snacks.git.blame_line() end, desc = "Show Git log of this line", mode = { "n" }},
             { "<leader>g", function() Snacks.lazygit() end, desc = "Open Lazygit", mode = { "n" }},
+            { "<leader>,", function() Snacks.scratch.select() end, desc = "Select Scratch", mode = { "n" }},
+            {
+                "<leader>.",
+                function()
+                   Snacks.scratch({filekey = { id = os.date("%Y-%m-%d ") }})
+                end,
+                desc = "Open Today Memo",
+                mode = { "n" }
+            },
+            {
+                "<leader>/",
+                function()
+                   Snacks.scratch({filekey = { id = "Inbox" }})
+                end,
+                desc = "Open Shared Memo",
+                mode = { "n" }
+            },
         },
     },
     -----------------------------------------------------------
