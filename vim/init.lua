@@ -1,13 +1,14 @@
 vim.loader.enable()
 
 local IsWSL = vim.fn.has("wsl") == 1
+local IsLightMode = vim.env.NVIM_LIGHT_MODE== "1"
 
 -----------------------------------------------------------
 -- common options
 -----------------------------------------------------------
 vim.opt.termguicolors = true
 -- sign column を常に1行表示する
-vim.opt.signcolumn = 'yes:1'
+vim.opt.signcolumn = 'yes'
 -- fold を無効にする
 vim.opt.foldenable = false
 -- 常にステータスラインを表示する
@@ -75,6 +76,18 @@ vim.opt.scrolloff = vim.g.scrolloff_default
 
 -- Tex の filetype を設定
 vim.g.tex_flavor = 'latex'
+
+
+-----------------------------------------------------------
+-- Less mode settings
+-----------------------------------------------------------
+if IsLightMode then
+    vim.g.loaded_python3_provider = 0
+    vim.g.loaded_node_provider = 0
+    vim.g.loaded_ruby_provider = 0
+    vim.g.loaded_perl_provider = 0
+end
+
 
 -----------------------------------------------------------
 -- non plugin keybindings
@@ -279,10 +292,12 @@ require('lazy').setup({
     {
         -- 囲い文字をテキストオブジェクトとして扱う
         'machakann/vim-sandwich',
+        cond = not IsLightMode,
         event = 'VeryLazy',
     }, {
         -- Whitespace を強調
         'ntpeters/vim-better-whitespace',
+        cond = not IsLightMode,
         event = 'VeryLazy',
         config = function()
             vim.g.better_whitespace_filetypes_blacklist = {
@@ -310,6 +325,7 @@ require('lazy').setup({
     }, {
         -- スニペット
         'hrsh7th/vim-vsnip',
+        cond = not IsLightMode,
         event = 'InsertEnter',
         dependencies = {
             'hrsh7th/vim-vsnip-integ',
@@ -327,9 +343,7 @@ require('lazy').setup({
         -- Insert mode から抜けると IME を無効にする
         'keaising/im-select.nvim',
         event = 'InsertEnter',
-        cond = function()
-            return vim.env.SSH_CLIENT == nil
-        end,
+        cond = not IsLightMode and vim.env.SSH_CLIENT == nil,
         config = function()
             local opt = {}
             if IsWSL then
@@ -343,11 +357,13 @@ require('lazy').setup({
         end,
     }, {
         'nmac427/guess-indent.nvim',
+        cond = not IsLightMode,
         event = { "BufReadPost", "BufNewFile" },
         opts = {}
     }, {
         -- 括弧の補完
         'hrsh7th/nvim-insx',
+        cond = not IsLightMode,
         event = 'InsertEnter',
         config = function()
             require('insx.preset.standard').setup()
@@ -365,6 +381,7 @@ require('lazy').setup({
     }, {
         -- カラーコードに色をつける
         "catgoose/nvim-colorizer.lua",
+        cond = not IsLightMode,
         event = { "BufReadPre", "BufNewFile" },
         opts = {
             lazy_load = true,
@@ -373,6 +390,7 @@ require('lazy').setup({
     }, {
         -- TODO などを目立たせる
         'folke/todo-comments.nvim',
+        cond = not IsLightMode,
         event = { 'BufReadPre', 'BufNewFile' },
         dependencies = { 'nvim-lua/plenary.nvim' },
         opts = {},
@@ -396,6 +414,7 @@ require('lazy').setup({
     }, {
         -- 構文解析ツールを管理
         "nvim-treesitter/nvim-treesitter",
+        cond = not IsLightMode,
         lazy = false,
         build = ":TSUpdate",
 
@@ -469,6 +488,7 @@ require('lazy').setup({
     }, {
         -- buffer line プラグイン
         'akinsho/bufferline.nvim',
+        cond = not IsLightMode,
         event = 'VimEnter',
         dependencies = { 'nvim-tree/nvim-web-devicons' },
         opts = {
@@ -496,10 +516,10 @@ require('lazy').setup({
     }, {
         -- Markdown ファイルの見た目を豪華に
         'MeanderingProgrammer/render-markdown.nvim',
+        ft = { "markdown", "Avante" },
         opts = {
             file_types = { "markdown", "Avante" },
         },
-        ft = { "markdown", "Avante" },
     }, {
         -- Swagger File を可視化する
         "vinnymeller/swagger-preview.nvim",
@@ -512,7 +532,10 @@ require('lazy').setup({
         lazy = false,
         opts = {
             dashboard = { enabled = true },
-            bigfile = { enabled = true },
+            bigfile = {
+                enabled = true,
+                notify = false,
+            },
             quickfile = { enabled = true },
             scratch = {
                 enabled = true,
@@ -532,12 +555,12 @@ require('lazy').setup({
             },
             indent = { enabled = true },
             scope = { enabled = true },
+            words = { enabled = true },
 
             input = { enabled = false },
             notifier = { enabled = false },
             scroll = { enabled = false },
             statuscolumn = { enabled = false },
-            words = { enabled = true },
             picker = { enabled = false },
             explorer = { enabled = false },
         },
@@ -553,6 +576,7 @@ require('lazy').setup({
     {
         -- AI 補完
         "zbirenbaum/copilot.lua",
+        cond = not IsLightMode,
         event = 'InsertEnter',
         opts = {
             suggestion = { enabled = false },
@@ -606,6 +630,7 @@ require('lazy').setup({
     {
         -- copilot.lua の nvim-cmp ソース
         "zbirenbaum/copilot-cmp",
+        cond = not IsLightMode,
         event = 'InsertEnter',
         dependencies = {"zbirenbaum/copilot.lua"},
         config = function()
@@ -614,6 +639,7 @@ require('lazy').setup({
     }, {
         -- Completion
         'hrsh7th/nvim-cmp',
+        cond = not IsLightMode,
         event = {'InsertEnter', 'CmdlineEnter'},
         dependencies = {
             'hrsh7th/cmp-nvim-lsp',
@@ -731,6 +757,7 @@ require('lazy').setup({
     {
         -- LSP 用のデータセット
         'neovim/nvim-lspconfig',
+        cond = not IsLightMode,
         event = { 'BufReadPre', 'BufNewFile'},
         config = function()
             vim.lsp.config("*", {
@@ -740,12 +767,15 @@ require('lazy').setup({
     }, {
         -- LSP ツールをインストール&セットアップ
         'mason-org/mason.nvim',
+        cond = not IsLightMode,
         cmd = "Mason",
         opts = { ui = { border = 'single' } }
     }, {
         -- Mason と LSPConfig を連携させる
         'mason-org/mason-lspconfig.nvim',
+        cond = not IsLightMode,
         dependencies = {
+            'mason-org/mason.nvim',
             'neovim/nvim-lspconfig',
         },
         event = { 'BufReadPre', 'BufNewFile'},
@@ -759,15 +789,18 @@ require('lazy').setup({
     }, {
         -- LSP のセットアップ状態を表示する
         'j-hui/fidget.nvim',
+        cond = not IsLightMode,
         event = 'LspAttach',
         opts = {},
     }, {
         -- Rust 用 LSP
         'mrcjkb/rustaceanvim',
+        cond = not IsLightMode,
         ft = {'rust'},
     }, {
         -- Flutter 用統合開発環境
         'nvim-flutter/flutter-tools.nvim',
+        cond = not IsLightMode,
         ft = {'dart'},
         dependencies = {
             'nvim-lua/plenary.nvim',
@@ -776,6 +809,7 @@ require('lazy').setup({
     }, {
         -- init.lua 用 LSP
         "folke/lazydev.nvim",
+        cond = not IsLightMode,
         ft = "lua",
         opts = {
           library = {
@@ -785,6 +819,7 @@ require('lazy').setup({
     }, {
         -- formatter を設定
         "stevearc/conform.nvim",
+        cond = not IsLightMode,
         event = {'BufReadPre', 'BufNewFile'},
         config = function()
             require("conform").setup({
@@ -859,51 +894,53 @@ lazy_opt
 -- LSP Settings
 -----------------------------------------------------------
 
--- 型情報を補足する
-vim.lsp.inlay_hint.enable()
-vim.api.nvim_create_user_command('InlayHintToggle', function()
-    vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
-    vim.notify(string.format("Inlay Hint: %s", vim.lsp.inlay_hint.is_enabled()))
-end, {})
+if not IsLightMode then
+    -- 型情報を補足する
+    vim.lsp.inlay_hint.enable()
+    vim.api.nvim_create_user_command('InlayHintToggle', function()
+        vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
+        vim.notify(string.format("Inlay Hint: %s", vim.lsp.inlay_hint.is_enabled()))
+    end, {})
 
--- diagnostic の行末→非表示，フロート表示→ボーダー付表示
-vim.diagnostic.config({
-  virtual_text = false,
-  float = {
-    border = "single",
-    focusable = false,
-  },
-})
+    -- diagnostic の行末→非表示，フロート表示→ボーダー付表示
+    vim.diagnostic.config({
+        virtual_text = false,
+        float = {
+            border = "single",
+            focusable = false,
+        },
+    })
 
--- diagnostic のフロート表示をカーソル位置に追従させる
-vim.g.show_diagnostics = true
-vim.api.nvim_create_autocmd("CursorHold", {
-  group = vim.api.nvim_create_augroup("DiagnosticsFloat", { clear = true }),
-  callback = function()
-    if vim.g.show_diagnostics then
-      vim.diagnostic.open_float(nil, {
-        border = "single",
-        focusable = false,
-      })
-    end
-  end,
-})
+    -- diagnostic のフロート表示をカーソル位置に追従させる
+    vim.g.show_diagnostics = true
+    vim.api.nvim_create_autocmd("CursorHold", {
+        group = vim.api.nvim_create_augroup("DiagnosticsFloat", { clear = true }),
+        callback = function()
+            if vim.g.show_diagnostics then
+                vim.diagnostic.open_float(nil, {
+                    border = "single",
+                    focusable = false,
+                })
+            end
+        end,
+    })
 
--- diagnostic のフロート表示を切り替えるコマンド
-vim.keymap.set("n", "<leader>d", function()
-  vim.g.show_diagnostics = not vim.g.show_diagnostics
-  vim.notify(string.format("Show Diagnostic: %s", vim.g.show_diagnostics))
-end, {
-  desc = "Toggle diagnostic float",
-})
+    -- diagnostic のフロート表示を切り替えるコマンド
+    vim.keymap.set("n", "<leader>d", function()
+        vim.g.show_diagnostics = not vim.g.show_diagnostics
+        vim.notify(string.format("Show Diagnostic: %s", vim.g.show_diagnostics))
+    end, {
+        desc = "Toggle diagnostic float",
+    })
 
--- LSP がアタッチされたときに keybindings を設定
-vim.api.nvim_create_autocmd('LspAttach', {
-    group = vim.api.nvim_create_augroup('LspAttachSettings', {}),
-    callback = function(args)
-        local client = assert(vim.lsp.get_client_by_id(args.data.client_id))
-        local bufnr = args.buf
+    -- LSP がアタッチされたときに keybindings を設定
+    vim.api.nvim_create_autocmd('LspAttach', {
+        group = vim.api.nvim_create_augroup('LspAttachSettings', {}),
+        callback = function(args)
+            local client = assert(vim.lsp.get_client_by_id(args.data.client_id))
+            local bufnr = args.buf
 
-        lsp_keybindings(client, bufnr)
-    end,
-})
+            lsp_keybindings(client, bufnr)
+        end,
+    })
+end

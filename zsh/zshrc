@@ -89,7 +89,10 @@ alias c='cargo'
 # other
 alias clear='clear -x'
 alias psa='ps auxf'
-alias less='nvim -R'
+
+# [Warnig] less alias to nvim
+alias less='NVIM_LIGHT_MODE=1 nvim -R -n -i NONE'
+
 function mkcd(){
     mkdir -p -- "$1" && cd -- "$1"
 }
