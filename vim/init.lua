@@ -1,12 +1,6 @@
 vim.loader.enable()
 
-local s_obj = vim.system({'sh', '-c', 'uname -r | grep -q microsoft'})
-local res = s_obj:wait(1000)
-if res.code == 0 then
-    IsWSL = true
-else
-    IsWSL = false
-end
+local IsWSL = vim.fn.has("wsl") == 1
 
 -----------------------------------------------------------
 -- common options
@@ -349,7 +343,7 @@ require('lazy').setup({
         end,
     }, {
         'nmac427/guess-indent.nvim',
-        lazy = false,
+        event = { "BufReadPost", "BufNewFile" },
         opts = {}
     }, {
         -- 括弧の補完
@@ -372,7 +366,10 @@ require('lazy').setup({
         -- カラーコードに色をつける
         "catgoose/nvim-colorizer.lua",
         event = { "BufReadPre", "BufNewFile" },
-        opts = {},
+        opts = {
+            lazy_load = true,
+            options = { tailwind = { enable = false } }
+        },
     }, {
         -- TODO などを目立たせる
         'folke/todo-comments.nvim',
@@ -734,25 +731,24 @@ require('lazy').setup({
     {
         -- LSP 用のデータセット
         'neovim/nvim-lspconfig',
-        lazy = false,
-    }, {
-        -- LSP のセットアップ状態を表示する
-        'j-hui/fidget.nvim',
-        lazy = false,
-        opts = {},
+        event = { 'BufReadPre', 'BufNewFile'},
+        config = function()
+            vim.lsp.config("*", {
+                capabilities = require("cmp_nvim_lsp").default_capabilities(),
+            })
+        end,
     }, {
         -- LSP ツールをインストール&セットアップ
         'mason-org/mason.nvim',
-        lazy = false,
+        cmd = "Mason",
         opts = { ui = { border = 'single' } }
     }, {
         -- Mason と LSPConfig を連携させる
         'mason-org/mason-lspconfig.nvim',
         dependencies = {
-            'mason-org/mason.nvim',
             'neovim/nvim-lspconfig',
         },
-        lazy = false,
+        event = { 'BufReadPre', 'BufNewFile'},
         opts = {
             automatic_enable = {
                 exclude = {
@@ -760,6 +756,11 @@ require('lazy').setup({
                 }
             },
         },
+    }, {
+        -- LSP のセットアップ状態を表示する
+        'j-hui/fidget.nvim',
+        event = 'LspAttach',
+        opts = {},
     }, {
         -- Rust 用 LSP
         'mrcjkb/rustaceanvim',
@@ -857,10 +858,6 @@ lazy_opt
 -----------------------------------------------------------
 -- LSP Settings
 -----------------------------------------------------------
-
-vim.lsp.config('*', {
-    capabilities = require('cmp_nvim_lsp').default_capabilities(),
-})
 
 -- 型情報を補足する
 vim.lsp.inlay_hint.enable()
