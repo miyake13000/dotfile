@@ -1,8 +1,5 @@
 vim.loader.enable()
 
-vim.opt.encoding = 'utf8'
-vim.scriptencoding = 'utf8'
-
 local s_obj = vim.system({'sh', '-c', 'uname -r | grep -q microsoft'})
 local res = s_obj:wait(1000)
 if res.code == 0 then
@@ -32,13 +29,11 @@ vim.opt.clipboard = 'unnamedplus'
 -- UTF-8 で保存する
 vim.opt.fileencoding = 'utf-8'
 -- 読込み時に文字コードを自動で判別する(左優先)
-vim.opt.fileencodings = 'ucs-boms,utf-8,euc-jp,cp932'
+vim.opt.fileencodings = 'ucs-bom,utf-8,euc-jp,cp932'
 -- 改行コードの自動判別(左優先)
 vim.opt.fileformats = 'unix,dos,mac'
 -- 文字幅不明の文字に適応する文字幅
 vim.opt.ambiwidth = 'single'
--- 保存するコマンド履歴の数
-vim.opt.history = 5000
 -- タブ入力を複数の空白入力に置き換える
 vim.opt.expandtab = true
 -- 改行時に前の行のインデントを継続する
@@ -125,11 +120,8 @@ set_keymap('i', '<C-k>', '<Del>', opts)
 set_keymap('n', '<C-Tab>', ':bn<CR>', opts)
 set_keymap('n', '<C-S-Tab>', ':bp<CR>', opts)
 -- window の切替
-set_keymap('n', '<C-j>', '<C-w>W', opts)
-set_keymap('n', '<C-k>', '<C-w>w', opts)
--- Windows を開く
-set_keymap('n', '<leader>s', ':split<CR>', opts)
-set_keymap('n', '<leader>v', ':vsplit<CR>', opts)
+set_keymap('n', '<C-h>', '<C-w>W', opts)
+set_keymap('n', '<C-l>', '<C-w>w', opts)
 -- Windows を閉じる
 set_keymap('n', '<leader>q', '<C-w>q', opts)
 
@@ -172,7 +164,7 @@ vim.api.nvim_create_autocmd('BufRead', {
                 local ft = vim.bo[opts.buf].filetype
                 local last_known_line = vim.api.nvim_buf_get_mark(opts.buf, '"')[1]
                 if
-                    not (ft:match('commit') and ft:match('rebase'))
+                    not (ft:match('commit') or ft:match('rebase'))
                     and last_known_line > 1
                     and last_known_line <= vim.api.nvim_buf_line_count(opts.buf)
                 then
@@ -250,8 +242,6 @@ require('lazy').setup({
     }, {
         -- light mode 用 colorscheme
         "folke/tokyonight.nvim",
-        event = 'BufEnter',
-        priority = 1000,
         cmd = { 'ColorSchemeToggle' },
         opts = {},
     },
@@ -267,7 +257,7 @@ require('lazy').setup({
         },
         config = function()
             local my_sections = {
-                lualine_a = { 'filename' },
+                lualine_a = { 'mode' },
                 lualine_b = { 'branch', 'diff', 'diagnostics' },
                 lualine_c = {
                     {
@@ -297,13 +287,6 @@ require('lazy').setup({
         'machakann/vim-sandwich',
         event = 'VeryLazy',
     }, {
-        -- 自動でインデント幅を設定する
-        'timakro/vim-yadi',
-        event = 'VeryLazy',
-        config = function()
-            vim.cmd('DetectIndent')
-        end
-    }, {
         -- Whitespace を強調
         'ntpeters/vim-better-whitespace',
         event = 'VeryLazy',
@@ -317,12 +300,9 @@ require('lazy').setup({
         -- latex 用エコシステム
         'lervag/vimtex',
         ft = 'tex',
-        event = 'VeryLazy',
         config = function()
             -- tex ファイルコンパイル時に pdf を開くビューワー
             if IsWSL then
-                -- vim.g.vimtex_view_general_viewer = 'sumatrapdf'
-                -- vim.g.vimtex_view_general_options = '-reuse-instance -forward-search @tex @line @pdf'
                 vim.g.vimtex_view_general_viewer = 'wsl-open'
             else
                 vim.g.vimtex_view_method = 'zathura'
@@ -368,6 +348,10 @@ require('lazy').setup({
             require('im_select').setup(opt)
         end,
     }, {
+        'nmac427/guess-indent.nvim',
+        lazy = false,
+        opts = {}
+    }, {
         -- 括弧の補完
         'hrsh7th/nvim-insx',
         event = 'InsertEnter',
@@ -378,8 +362,9 @@ require('lazy').setup({
         -- markdown のプレビューを表示する
         'iamcco/markdown-preview.nvim',
         cmd = { 'MarkdownPreview' },
-        ft = 'markdown',
-        build = "cd app && yarn install",
+        build = function()
+            vim.fn["mkdp#util#install"]()
+        end,
         init = function()
             vim.g.mkdp_filetypes = { "markdown" }
         end,
@@ -408,8 +393,8 @@ require('lazy').setup({
         'lewis6991/gitsigns.nvim',
         event = 'VeryLazy',
         opts = {
-            signcolumn = false,
-            numhl = true,
+            signcolumn = true,
+            numhl = false,
         }
     }, {
         -- 構文解析ツールを管理
@@ -454,22 +439,6 @@ require('lazy').setup({
             duration_multiplier = 0.5,   -- Global duration multiplier
         },
     }, {
-        -- comment out プラグイン
-        'numToStr/Comment.nvim',
-        event = 'VeryLazy',
-        opts = {},
-    }, {
-        -- show macro status
-        "chrisgrieser/nvim-recorder",
-        event = 'VeryLazy',
-        dependencies = "rcarriga/nvim-notify",
-        opts = {},
-    }, {
-        -- vim.ui.select を改善
-        'stevearc/dressing.nvim',
-        event = 'VeryLazy',
-        opts = {},
-    }, {
         -- funny plugins
         'eandrju/cellular-automaton.nvim',
         cmd = 'CellularAutomaton',
@@ -508,10 +477,6 @@ require('lazy').setup({
         event = 'VeryLazy',
         opts = {},
     }, {
-        -- Git Diff を 2 side で表示する
-        'sindrets/diffview.nvim',
-        event = 'VeryLazy',
-    }, {
         -- vim 上で翻訳する
         'uga-rosa/translate.nvim',
         opts = {},
@@ -528,43 +493,17 @@ require('lazy').setup({
     }, {
         -- Markdown ファイルの見た目を豪華に
         'MeanderingProgrammer/render-markdown.nvim',
-        event = { 'BufReadPre', 'BufNewFile' },
         opts = {
             file_types = { "markdown", "Avante" },
         },
         ft = { "markdown", "Avante" },
     }, {
-        -- Lazygit を vim 上で使う
-        "kdheepak/lazygit.nvim",
-        dependencies = {
-            "nvim-lua/plenary.nvim",
-        },
-        keys = {
-            { "<leader>g", "<cmd>LazyGit<cr>", desc = "LazyGit" }
-        },
-    }, {
         -- Swagger File を可視化する
         "vinnymeller/swagger-preview.nvim",
-        file_types = { "yaml" },
         cmd = { "SwaggerPreview", "SwaggerPreviewStop", "SwaggerPreviewToggle" },
         build = "npm i",
         opts = {},
     }, {
-        -- Buffer を削除しても Window を閉じないようにする
-        'ojroques/nvim-bufdel',
-        keys = {
-            { "<leader>w", "<cmd>BufDel<CR>", desc = "Buffer Delete" },
-        },
-        opts = {
-            next = 'tabs',
-            quit = false,
-        },
-    }, {
-        -- インデントガイドを表示
-    --     "lukas-reineke/indent-blankline.nvim",
-    --     main = "ibl",
-    --     opts = {},
-    -- }, {
         -- utility plugin
         "folke/snacks.nvim",
         lazy = false,
@@ -572,7 +511,16 @@ require('lazy').setup({
             dashboard = { enabled = true },
             bigfile = { enabled = true },
             quickfile = { enabled = true },
-            scratch = { enabled = true },
+            scratch = {
+                enabled = true,
+                ft = "markdown",
+                autowrite = true,
+                filekey = {
+                    cwd = false,
+                    branch = false,
+                    count = true,
+                },
+            },
             styles = {
                 scratch = {
                     width = 200,
@@ -591,62 +539,10 @@ require('lazy').setup({
             explorer = { enabled = false },
         },
         keys = {
-            -- Other
-            { "<leader>.",  function() Snacks.scratch() end, desc = "Toggle Scratch Buffer" },
-            { "<leader>S",  function() Snacks.scratch.select() end, desc = "Select Scratch Buffer" },
-            { "<leader>n",  function() Snacks.notifier.show_history() end, desc = "Notification History" },
-            { "<leader>un", function() Snacks.notifier.hide() end, desc = "Dismiss All Notifications" },
+            { "<C-q>", function() Snacks.bufdelete.delete() end, desc = "Delete current buffer", mode = { "n", "v" }},
+            { "gb", function() Snacks.git.blame_line() end, desc = "Show Git log of this line", mode = { "n" }},
+            { "<leader>g", function() Snacks.lazygit() end, desc = "Open Lazygit", mode = { "n" }},
         },
-        init = function()
-            vim.api.nvim_create_autocmd("User", {
-                pattern = "VeryLazy",
-                callback = function()
-                    -- Setup some globals for debugging (lazy-loaded)
-                    _G.dd = function(...)
-                        Snacks.debug.inspect(...)
-                    end
-                    _G.bt = function()
-                        Snacks.debug.backtrace()
-                    end
-
-                    -- Override print to use snacks for `:=` command
-                    if vim.fn.has("nvim-0.11") == 1 then
-                        vim.print = function(_, ...)
-                            dd(...)
-                        end
-                    else
-                        vim.print = _G.dd
-                    end
-
-                    -- Create some toggle mappings
-                    Snacks.toggle.diagnostics():map("<leader>ud")
-                    Snacks.toggle.inlay_hints():map("<leader>uh")
-                end,
-            })
-        end,
-    }, {
-        "monaqa/dial.nvim",
-        keys = {
-            { "<C-a>", function() return require("dial.map").inc_normal() end, desc = "Increment", expr = true, mode = { "n", "x" } },
-            { "<C-s>", function() return require("dial.map").dec_normal() end, desc = "Decrement", expr = true, mode = { "n", "x" } },
-            { "g<C-a>", function() return require("dial.map").inc_gnormal() end, desc = "Increment (visual)", expr = true, mode = { "n", "x" } },
-            { "g<C-s>", function() return require("dial.map").dec_gnormal() end, desc = "Decrement (visual)", expr = true, mode = { "n", "x" } },
-        },
-        config = function()
-            local augend = require("dial.augend")
-            require("dial.config").augends:register_group{
-                default = {
-                    augend.integer.alias.decimal,
-                    augend.integer.alias.hex,
-                    augend.date.alias["%Y/%m/%d"],
-                    augend.date.alias["%H:%M:%S"],
-                    augend.constant.alias.alpha,
-                    augend.constant.alias.Alpha,
-                    augend.constant.alias.bool,
-                    augend.semver.alias.semver,
-                },
-            }
-        end
     },
     -----------------------------------------------------------
     -- AI Boost
@@ -655,13 +551,10 @@ require('lazy').setup({
         -- AI 補完
         "zbirenbaum/copilot.lua",
         event = 'InsertEnter',
-        config = function()
-            require("copilot").setup({
-                -- needed by copilot-cmp
-                suggestion = { enabled = false },
-                panel = { enabled = false },
-            })
-        end,
+        opts = {
+            suggestion = { enabled = false },
+            panel = { enabled = false },
+        }
     }, {
         "yetone/avante.nvim",
         -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
@@ -865,15 +758,12 @@ require('lazy').setup({
         -- Rust 用 LSP
         'mrcjkb/rustaceanvim',
         ft = {'rust'},
-        lazy = false,
     }, {
         -- Flutter 用統合開発環境
         'nvim-flutter/flutter-tools.nvim',
-        event = {'BufReadPre', 'BufNewFile'},
         ft = {'dart'},
         dependencies = {
             'nvim-lua/plenary.nvim',
-            'stevearc/dressing.nvim',
         },
         opts = {},
     }, {
