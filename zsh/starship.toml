@@ -33,6 +33,10 @@ ${custom.doll}\
 
 # Disable the blank line at the start of the prompt
 add_newline = false
+# Timeout for the prompt to list files, in milliseconds
+scan_timeout = 10
+# Timeout for the prompt to execute external command, in milliseconds
+command_timeout = 100
 
 [env_var.ORCA]
 variable = "ORCA"

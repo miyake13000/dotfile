@@ -81,12 +81,18 @@ alias gg='git graph'
 alias gb='git branch'
 alias gc='git checkout'
 alias gd='git diff'
-function gcm {
-    git commit -m '$*'
+_gcm() {
+  if (( $# == 0 )); then
+    echo "usage: gcm <commit message>"
+    return 1
+  fi
+
+  git commit -m "$*"
 }
-# Rust
-alias c='cargo'
+alias gcm='noglob _gcm'
+
 # other
+alias c='cargo'
 alias clear='clear -x'
 alias psa='ps auxf'
 
@@ -207,5 +213,5 @@ bindkey '^q' push-input
 # Startup program
 ############################################
 if [[ -z $TMUX && -z $ORCA ]]; then
-    exec tmux new-session -A
+    tmux new-session -A
 fi
