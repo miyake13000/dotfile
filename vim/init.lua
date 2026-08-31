@@ -301,7 +301,7 @@ require('lazy').setup({
         event = 'VeryLazy',
         config = function()
             vim.g.better_whitespace_filetypes_blacklist = {
-                'toggleterm', 'diff', 'qf', 'help', 'snacks_dashboard'
+                'diff', 'qf', 'help', 'snacks_dashboard'
             }
             vim.api.nvim_set_hl(0, 'ExtraWhitespace', { bg = '#CF572D' })
         end
@@ -450,41 +450,6 @@ require('lazy').setup({
             })
         end,
     }, {
-        -- terminal の見た目をよくする
-        'akinsho/toggleterm.nvim',
-        keys = {
-            { '<C-t>',
-              '<CMD>ToggleTerm direction=float<CR>',
-              mode = {'n', 'v', 'i'},
-              desc = 'ToggleTerm open float' },
-            { '<leader>yt',
-              '<CMD>ToggleTerm direction=horizontal size=10<CR>',
-              mode = {'n', 'v'},
-              desc = 'ToggleTerm open float' },
-            { '<leader>yy',
-              '<CMD>ToggleTerm direction=vertical size=50<CR>',
-              mode = {'n', 'v'},
-              desc = 'ToggleTerm open side' },
-        },
-        config = function()
-            require('toggleterm').setup()
-            -- Terminal 内でも <ESC> を使えるようにする
-            vim.api.nvim_create_autocmd('TermOpen', {
-                pattern = { 'term://*' },
-                callback = function()
-                    vim.api.nvim_buf_set_keymap(0, 't', '<ESC>', [[<C-\><C-n>]], { noremap = true, silent = true })
-                end
-            })
-        end
-    }, {
-        -- スクロールをスムーズにする
-        'karb94/neoscroll.nvim',
-        event = 'VeryLazy',
-        opts = {
-            mappings = { '<C-u>', '<C-d>', '<C-b>', '<C-f>', '<C-y>', '<C-e>', 'zt', 'zz', 'zb', },
-            duration_multiplier = 0.5,   -- Global duration multiplier
-        },
-    }, {
         -- funny plugins
         'eandrju/cellular-automaton.nvim',
         cmd = 'CellularAutomaton',
@@ -531,13 +496,6 @@ require('lazy').setup({
             { '<leader>t', ':Translate ja -output=floating<CR>', mode = { 'n', 'v' }, desc = 'Translate', silent = true }
         },
     }, {
-        -- ファイラ
-        'nvim-tree/nvim-tree.lua',
-        keys = {
-            { "<leader>o", "<cmd>NvimTreeToggle<CR>", desc = "NvimTreeToggle" },
-        },
-        opts = {},
-    }, {
         -- Markdown ファイルの見た目を豪華に
         'MeanderingProgrammer/render-markdown.nvim',
         ft = { "markdown", "Avante" },
@@ -550,7 +508,11 @@ require('lazy').setup({
         cmd = { "SwaggerPreview", "SwaggerPreviewStop", "SwaggerPreviewToggle" },
         build = "npm i",
         opts = {},
-    }, {
+    },
+    -----------------------------------------------------------
+    -- Snacks: All-in-One Utility Plugin
+    -----------------------------------------------------------
+    {
         -- utility plugin
         "folke/snacks.nvim",
         lazy = false,
@@ -561,6 +523,7 @@ require('lazy').setup({
                 notify = false,
             },
             quickfile = { enabled = true },
+            termnal = { enabled = true },
             scratch = {
                 enabled = true,
                 ft = "markdown",
@@ -576,23 +539,59 @@ require('lazy').setup({
                 scratch = {
                     width = 200,
                     height = 50,
-                }
+                },
+                terminal = {
+                    keys = {
+                        q = "hide",
+                        gf = function(self)
+                            local f = vim.fn.findfile(vim.fn.expand("<cfile>"), "**")
+                            if f == "" then
+                                Snacks.notify.warn("No file under cursor")
+                            else
+                                self:hide()
+                                vim.schedule(function()
+                                    vim.cmd("e " .. f)
+                                end)
+                            end
+                        end,
+                        term_normal = {
+                            "<Esc>",
+                            [[<C-\><C-n>]],
+                            mode = "t",
+                            desc = "Enter Terminal-Normal mode",
+                        },
+                    },
+                    auto_close = true,
+                },
+                -- lazygit では terminal の Esc マッピングを無効化
+                lazygit = {
+                    keys = {
+                        term_normal = false,
+                    },
+                },
             },
             indent = { enabled = true },
             scope = { enabled = true },
             words = { enabled = true },
+            picker = { enabled = true },
+            scroll = { enabled = true },
+            explorer = { enabled = true },
+            input = { enabled = true },
+            notifier = {
+                enabled = true,
+                timeout = 3000,
+            },
 
-            input = { enabled = false },
-            notifier = { enabled = false },
-            scroll = { enabled = false },
             statuscolumn = { enabled = false },
-            picker = { enabled = false },
-            explorer = { enabled = false },
         },
         keys = {
+            -- bufdelete
             { "<C-q>", function() Snacks.bufdelete.delete() end, desc = "Delete current buffer", mode = { "n", "v" }},
+            -- Git Blame
             { "gb", function() Snacks.git.blame_line() end, desc = "Show Git log of this line", mode = { "n" }},
+            -- Lazygit
             { "<leader>g", function() Snacks.lazygit() end, desc = "Open Lazygit", mode = { "n" }},
+            -- Scratch
             { "<leader>,", function() Snacks.scratch.select() end, desc = "Select Scratch", mode = { "n" }},
             {
                 "<leader>.",
@@ -610,6 +609,55 @@ require('lazy').setup({
                 desc = "Open Shared Memo",
                 mode = { "n" }
             },
+            -- Terminal
+            {
+                "<C-t>",
+                function()
+                    Snacks.terminal.toggle(nil, {
+                        count = 1,
+                        win = {
+                            position = "float",
+                            border = "rounded",
+                        },
+                    })
+                end,
+                mode = { "n", "v", "i", "t" },
+                desc = "Terminal: float",
+            },
+            {
+                "<leader>yt",
+                function()
+                    Snacks.terminal.toggle(nil, {
+                        count = 2,
+                        win = {
+                            position = "bottom",
+                            height = 10,
+                        },
+                    })
+                end,
+                mode = { "n", "v" },
+                desc = "Terminal: horizontal",
+            },
+            {
+                "<leader>yy",
+                function()
+                    Snacks.terminal.toggle(nil, {
+                        count = 3,
+                        win = {
+                            position = "right",
+                            width = 50,
+                        },
+                    })
+                end,
+                mode = { "n", "v" },
+                desc = "Terminal: vertical",
+            },
+            -- Picker (Telescope alternative)
+            { "<leader>ff", function() Snacks.picker.files() end, desc = "Find files" },
+            { "<leader>fg", function() Snacks.picker.grep() end, desc = "Live grep" },
+            { "<leader><space>", function() Snacks.picker.smart() end, desc = "Live grep" },
+            -- Explorer
+            { "<leader>o", function() Snacks.explorer() end, desc = "File explorer" },
         },
     },
     -----------------------------------------------------------
@@ -651,19 +699,6 @@ require('lazy').setup({
         dependencies = {
             "nvim-lua/plenary.nvim",
             "MunifTanjim/nui.nvim",
-        },
-    },
-    -----------------------------------------------------------
-    -- Telescope plugin
-    -----------------------------------------------------------
-    {
-        -- ファジーファインダー
-        'nvim-telescope/telescope.nvim',
-        cmd = 'Telescope',
-        dependencies = { 'nvim-lua/plenary.nvim' },
-        keys = {
-            { '<leader>ff', '<CMD>Telescope find_files<CR>', desc = 'Telescope find files'},
-            { '<leader>fg', '<CMD>Telescope live_grep<CR>', desc = 'Telescope live grep'},
         },
     },
     -----------------------------------------------------------
