@@ -21,6 +21,11 @@ vim.opt.hidden = true
 vim.opt.showmatch = true
 -- yank でクリップボードに入る
 vim.opt.clipboard = 'unnamedplus'
+if vim.env.TMUX then
+  vim.g.clipboard = "tmux"
+else
+  vim.g.clipboard = "osc52"
+end
 -- UTF-8 で保存する
 vim.opt.fileencoding = 'utf-8'
 -- 読込み時に文字コードを自動で判別する(左優先)

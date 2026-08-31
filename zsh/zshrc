@@ -4,7 +4,7 @@
 ############################################
 # env
 ############################################
-if [ $SHLVL = 1 ]; then
+if [[ -z $ZSH_SETUP_DONE ]]; then
     # Add local binary path
     export PATH="$HOME/.local/bin:$PATH"
     # Add cargo-binstall tools path
@@ -12,6 +12,8 @@ if [ $SHLVL = 1 ]; then
 
     # anyenv setup
     eval "$(anyenv init -)"
+
+    export ZSH_SETUP_DONE=true
 fi
 
 # Additional machine specific completions
@@ -213,5 +215,8 @@ bindkey '^q' push-input
 # Startup program
 ############################################
 if [[ -z $TMUX && -z $ORCA ]]; then
-    tmux new-session -A
+    output=$(tmux new-session -A)
+    if [ $output = "[exited]" ]; then
+        exit
+    fi
 fi
