@@ -513,6 +513,9 @@ require('lazy').setup({
         cmd = { "SwaggerPreview", "SwaggerPreviewStop", "SwaggerPreviewToggle" },
         build = "npm i",
         opts = {},
+    }, {
+        "chrisgrieser/nvim-recorder",
+        opts = {},
     },
     -----------------------------------------------------------
     -- Snacks: All-in-One Utility Plugin
