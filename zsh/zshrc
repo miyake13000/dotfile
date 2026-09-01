@@ -143,7 +143,7 @@ zstyle ':chpwd:*' recent-dirs-file $ZSH_CDR_DIR/recent-dirs
 zstyle ':chpwd:*' recent-dirs-max 1000
 zstyle ':chpwd:*' recent-dirs-default yes
 function fzf-cdr() {
-    target_dir=$(cdr -l | sed 's/^[^ ][^ ]*  *//' | fzf)
+    target_dir=$(cdr -l | sed 's/^[^ ][^ ]*  *//' | fzf  --bind 'tab:up,btab:down')
     target_dir=${target_dir/#\~/$HOME}
     [[ -n $target_dir ]] && cd -- "$target_dir"
 }
@@ -194,7 +194,7 @@ setopt share_history
 function select-history() {
     local selected
     selected=$(history -n -r 1 |
-        fzf --no-sort +m --query "$LBUFFER" --exact --prompt="History > ") || return
+        fzf --bind 'tab:up,btab:down' --no-sort +m --query "$LBUFFER" --exact --prompt="History > ") || return
 
     BUFFER=$selected
     CURSOR=${#BUFFER}
@@ -210,6 +210,7 @@ setopt no_flow_control
 
 bindkey '^r' select-history
 bindkey '^q' push-input
+bindkey '^o' clear-screen
 
 ############################################
 # Startup program

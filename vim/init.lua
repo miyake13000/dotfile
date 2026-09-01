@@ -247,10 +247,10 @@ require('lazy').setup({
                     fg = '#f0f0f0',
                     bg = '#101010',
                 },
+                options = { cursorline = true },
             })
             vim.cmd("colorscheme onedark_dark")
             vim.api.nvim_set_hl(0, "@punctuation.special.latex", { link = 'Special' })
-            vim.api.nvim_set_hl(0, "CursorLine", { bg = '#252525' })
         end
     }, {
         -- light mode 用 colorscheme
@@ -524,8 +524,31 @@ require('lazy').setup({
         build = "npm i",
         opts = {},
     }, {
+        -- Macro の開始，内容を notify で表示する
         "chrisgrieser/nvim-recorder",
         opts = {},
+    }, {
+        -- mode にあわせて CursorLineNr の highlight を変更する
+        'mawkler/modicator.nvim',
+        event = 'VeryLazy',
+        opts = {},
+    }, {
+        -- terminal の見た目をよくする
+        'akinsho/toggleterm.nvim',
+        keys = {
+            { '<C-t>', '<CMD>ToggleTerm direction=float<CR>', mode = {'n', 'v', 'i', 't'}, desc = 'Open Term: Float' },
+            { '<leader>yt', '<CMD>ToggleTerm direction=horizontal size=10<CR>', mode = {'n'}, desc = 'Open Term: Horizontal' },
+            { '<leader>yy', '<CMD>ToggleTerm direction=vertical size=50<CR>', mode = {'n'}, desc = 'Open Term: Vertical' },
+        },
+        opts = {
+            on_open = function(term)
+                vim.keymap.set("t", "<Esc>", [[<C-\><C-n>]], {
+                    buffer = term.bufnr,
+                    silent = true,
+                    desc = "Enter normal mode",
+                })
+            end,
+        }
     },
     -----------------------------------------------------------
     -- Snacks: All-in-One Utility Plugin
@@ -541,7 +564,6 @@ require('lazy').setup({
                 notify = false,
             },
             quickfile = { enabled = true },
-            termnal = { enabled = true },
             scratch = {
                 enabled = true,
                 ft = "markdown",
@@ -558,35 +580,6 @@ require('lazy').setup({
                     width = 200,
                     height = 50,
                 },
-                terminal = {
-                    keys = {
-                        q = "hide",
-                        gf = function(self)
-                            local f = vim.fn.findfile(vim.fn.expand("<cfile>"), "**")
-                            if f == "" then
-                                Snacks.notify.warn("No file under cursor")
-                            else
-                                self:hide()
-                                vim.schedule(function()
-                                    vim.cmd("e " .. f)
-                                end)
-                            end
-                        end,
-                        term_normal = {
-                            "<Esc>",
-                            [[<C-\><C-n>]],
-                            mode = "t",
-                            desc = "Enter Terminal-Normal mode",
-                        },
-                    },
-                    auto_close = true,
-                },
-                -- lazygit では terminal の Esc マッピングを無効化
-                lazygit = {
-                    keys = {
-                        term_normal = false,
-                    },
-                },
             },
             indent = { enabled = true },
             scope = { enabled = true },
@@ -600,6 +593,7 @@ require('lazy').setup({
                 timeout = 3000,
             },
 
+            termnal = { enabled = false },
             statuscolumn = { enabled = false },
         },
         keys = {
@@ -626,49 +620,6 @@ require('lazy').setup({
                 end,
                 desc = "Open Shared Memo",
                 mode = { "n" }
-            },
-            -- Terminal
-            {
-                "<C-t>",
-                function()
-                    Snacks.terminal.toggle(nil, {
-                        count = 1,
-                        win = {
-                            position = "float",
-                            border = "rounded",
-                        },
-                    })
-                end,
-                mode = { "n", "v", "i", "t" },
-                desc = "Terminal: float",
-            },
-            {
-                "<leader>yt",
-                function()
-                    Snacks.terminal.toggle(nil, {
-                        count = 2,
-                        win = {
-                            position = "bottom",
-                            height = 10,
-                        },
-                    })
-                end,
-                mode = { "n", "v" },
-                desc = "Terminal: horizontal",
-            },
-            {
-                "<leader>yy",
-                function()
-                    Snacks.terminal.toggle(nil, {
-                        count = 3,
-                        win = {
-                            position = "right",
-                            width = 50,
-                        },
-                    })
-                end,
-                mode = { "n", "v" },
-                desc = "Terminal: vertical",
             },
             -- Picker (Telescope alternative)
             { "<leader>ff", function() Snacks.picker.files() end, desc = "Find files" },
