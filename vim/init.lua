@@ -53,7 +53,7 @@ vim.opt.smartcase = true
 vim.opt.hlsearch = true
 -- 行番号を表示
 vim.opt.number = true
-vim.opt.relativenumber = true
+-- vim.opt.relativenumber = true
 -- カーソルラインをハイライト
 vim.opt.cursorline = true
 -- バックスペースキーの有効化
@@ -187,6 +187,22 @@ vim.api.nvim_create_autocmd('BufRead', {
     end,
 })
 
+-- Darkmode と Lightmode を入れ替える
+local is_dark = true
+vim.api.nvim_create_user_command(
+    'ColorSchemeToggle',
+    function()
+        if is_dark then
+            vim.cmd('colorscheme tokyonight-day')
+            is_dark = false
+        else
+            vim.cmd('colorscheme onedark_dark')
+            is_dark = true
+        end
+    end,
+    {}
+)
+
 
 -----------------------------------------------------------
 -- plugin settings
@@ -234,22 +250,7 @@ require('lazy').setup({
             })
             vim.cmd("colorscheme onedark_dark")
             vim.api.nvim_set_hl(0, "@punctuation.special.latex", { link = 'Special' })
-
-            -- Darkmode と Lightmode を入れ替える
-            local is_dark = true
-            vim.api.nvim_create_user_command(
-                'ColorSchemeToggle',
-                function()
-                    if is_dark then
-                        vim.cmd('colorscheme tokyonight-day')
-                        is_dark = false
-                    else
-                        vim.cmd('colorscheme onedark_dark')
-                        is_dark = true
-                    end
-                end,
-                {}
-            )
+            vim.api.nvim_set_hl(0, "CursorLine", { bg = '#252525' })
         end
     }, {
         -- light mode 用 colorscheme
@@ -348,6 +349,15 @@ require('lazy').setup({
         init = function()
             vim.g.suda_smart_edit = 1
         end,
+    }, {
+        -- tmux と連携してウィンドウを移動する
+        "christoomey/vim-tmux-navigator",
+        keys = {
+            { "<C-h>", "<cmd><C-U>TmuxNavigateLeft<cr>" },
+            { "<C-j>", "<cmd><C-U>TmuxNavigateDown<cr>" },
+            { "<C-k>", "<cmd><C-U>TmuxNavigateUp<cr>" },
+            { "<C-l>", "<cmd><C-U>TmuxNavigateRight<cr>" },
+        },
     },
     -----------------------------------------------------------
     -- lua plugins
