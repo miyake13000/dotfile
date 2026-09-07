@@ -131,6 +131,8 @@ set_keymap('i', '<C-k>', '<Del>', opts)
 -- buffer の切替
 set_keymap('n', '<C-Tab>', ':bn<CR>', opts)
 set_keymap('n', '<C-S-Tab>', ':bp<CR>', opts)
+set_keymap('n', 'H', ':bp<CR>', opts)
+set_keymap('n', 'L', ':bn<CR>', opts)
 -- window の切替
 set_keymap('n', '<C-h>', '<C-w>W', opts)
 set_keymap('n', '<C-l>', '<C-w>w', opts)
