@@ -1,7 +1,11 @@
 vim.loader.enable()
 
 local IsWSL = vim.fn.has("wsl") == 1
-local IsLightMode = vim.env.NVIM_LIGHT_MODE== "1"
+local IsLightMode = vim.env.NVIM_LIGHT_MODE == "1"
+
+local function is_light_mode()
+    return IsLightMode
+end
 
 -----------------------------------------------------------
 -- common options
@@ -84,7 +88,7 @@ vim.g.tex_flavor = 'latex'
 
 
 -----------------------------------------------------------
--- Less mode settings
+-- Light mode settings
 -----------------------------------------------------------
 if IsLightMode then
     vim.g.loaded_python3_provider = 0
@@ -138,6 +142,11 @@ set_keymap('n', '<C-h>', '<C-w>W', opts)
 set_keymap('n', '<C-l>', '<C-w>w', opts)
 -- Windows を閉じる
 set_keymap('n', '<leader>q', '<C-w>q', opts)
+
+-- LightMode の場合は q で全てのウィンドウを閉じる
+if IsLightMode then
+    set_keymap('n', 'q', '<Cmd>qa!<CR>', opts)
+end
 
 -- LSP 用の Keybindings
 local lsp_keybindings = function(client, bufnr)
@@ -270,29 +279,45 @@ require('lazy').setup({
         dependencies = {
             'nvim-tree/nvim-web-devicons'
         },
-        config = function()
-            local my_sections = {
-                lualine_a = { 'mode' },
-                lualine_b = { 'branch', 'diff', 'diagnostics' },
-                lualine_c = {
-                    {
-                        'filename',
-                        file_status = false,
-                        path = 3,
-                    },
-                    'selectioncount',
+        opts = { sections = {
+            lualine_a = {
+                {
+                    function() return 'Light' end,
+                    cond = is_light_mode,
                 },
-                lualine_x = { {
+                'mode',
+            },
+            lualine_b = {
+                'branch',
+                'diff',
+                'diagnostics',
+            },
+            lualine_c = {
+                {
+                    'filename',
+                    file_status = true,
+                    path = 4,
+                },
+                'selectioncount',
+            },
+            lualine_x = {
+                {
                     require('lazy.status').updates,
                     cond = require('lazy.status').has_updates,
-                } },
-                lualine_y = { 'encoding', 'fileformat', 'filetype' },
-                lualine_z = { '%l/%L:%c (%p%%)' }
+                },
+                'lsp_status'
+            },
+            lualine_y = {
+                'encoding',
+                'fileformat',
+                'filetype',
+            },
+            lualine_z = {
+                '%c',
+                '%l/%L:%2p%%',
             }
-            require('lualine').setup({
-                sections = my_sections,
-            })
-        end
+        }
+    }
     },
     -----------------------------------------------------------
     -- non lua plugins
@@ -528,6 +553,7 @@ require('lazy').setup({
     }, {
         -- Macro の開始，内容を notify で表示する
         "chrisgrieser/nvim-recorder",
+        cond = not IsLightMode,
         opts = {},
     }, {
         -- mode にあわせて CursorLineNr の highlight を変更する
