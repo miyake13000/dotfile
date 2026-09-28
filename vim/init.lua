@@ -696,6 +696,8 @@ require('lazy').setup({
         dependencies = {
             "nvim-lua/plenary.nvim",
             "MunifTanjim/nui.nvim",
+            "ColinKennedy/mega.cmdparse",
+            "ColinKennedy/mega.logging",
         },
     },
     -----------------------------------------------------------
