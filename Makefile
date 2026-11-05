@@ -37,6 +37,7 @@ setup-zsh: check-command
 	ln -sf $(CWD)/zsh/zshrc ~/.zshrc
 	ln -sf $(CWD)/zsh/starship.toml ~/.config/starship.toml
 	$(BINSTALL) starship
+	$(BINSTALL) eza
 	$(CWD)/scripts/install-tools.sh fzf
 
 setup-nvim: check-command
