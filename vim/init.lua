@@ -554,7 +554,11 @@ require('lazy').setup({
         -- Macro の開始，内容を notify で表示する
         "chrisgrieser/nvim-recorder",
         cond = not IsLightMode,
-        opts = {},
+        opts = {
+            mapping = {
+                switchSlot = "Q"
+            }
+        },
     }, {
         -- mode にあわせて CursorLineNr の highlight を変更する
         'mawkler/modicator.nvim',
